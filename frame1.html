@@ -1,0 +1,28 @@
+<html>
+    <head>
+    
+    </head>
+    <body>
+        
+        
+        <script src="wimp.js"></script>
+        <script type="text/javascript">
+            Wimp.listen();
+            
+            const w = Wimp(window.parent);
+            
+            setTimeout(() => {
+                w.request("hello").then(response => {
+                    console.log(response);
+                })
+                
+                w.request("hello22", response => {
+                    console.log("YAY", response);
+                })
+            },1000)
+            console.log(w);
+            
+            
+        </script>
+    </body>
+</html>

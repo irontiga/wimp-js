@@ -7,9 +7,43 @@
         <h3>Main doc</h3>
         
         <h3>Frame 1</h3>
-        <iframe id="frame1"></iframe>
+        <iframe id="frame1" src="frame1.html"></iframe>
         
+<!--
         <h3>Frame 2</h3>
-        <iframe id="frame2"></iframe>
+        <iframe id="frame2" src="frame2.html"></iframe>
+-->
+        
+        <script src="wimp.js"></script>
+        
+        <script>
+            
+            
+            Wimp.listen();
+            
+            myWimp = Wimp("*");
+            console.log(myWimp);
+            
+            const popup = window.open("popup.html", "FRAME222222");
+            console.log(popup);
+            console.log(popup);
+            myWimp.addTarget(popup);
+            
+            myWimp.on("hello", (req, res) => {
+                console.log(req);
+                res("Heeeeloooo from test.html");
+            })
+            
+            setTimeout(() => {
+                myWimp.on("hello22", (req, res) => {
+                    console.log(req);
+                    res("Heeeeloooo22 from test.html");
+                })
+            },500)
+            
+            console.log(myWimp);
+            
+            
+        </script>
     </body>
 </html>

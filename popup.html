@@ -1,0 +1,24 @@
+<html>
+    <head>
+    
+    </head>
+    <body>
+        
+        
+        <script src="wimp.js"></script>
+        <script type="text/javascript">
+            console.log("2222");
+            Wimp.listen();
+
+            const p = Wimp(window.opener);
+            console.log(window.opener);
+            console.log(p);
+            
+            setTimeout(() => {
+                p.request("hello22", response => {
+                    console.log("YAY", response);
+                })
+            }, 2000)
+        </script>
+    </body>
+</html>
