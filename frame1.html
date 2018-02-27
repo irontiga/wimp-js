@@ -9,7 +9,7 @@
         <script type="text/javascript">
             Wimp.listen();
             
-            const w = Wimp(window.parent);
+            const w = new Wimp(window.parent);
             
             setTimeout(() => {
                 w.request("hello").then(response => {
@@ -22,7 +22,19 @@
             },1000)
             console.log(w);
             
+            w.request("jj", response => {
+                console.log(response);
+            })
             
+            
+            setTimeout(()=>{
+                console.log("time");
+                wProxy = new Wimp("popup", window.parent);
+                console.log(wProxy);
+                wProxy.request("high", response => {
+                    console.log(response);
+                });
+            }, 4000)
         </script>
     </body>
 </html>

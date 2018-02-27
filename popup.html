@@ -10,7 +10,7 @@
             console.log("2222");
             Wimp.listen();
 
-            const p = Wimp(window.opener);
+            const p = new Wimp(window.opener);
             console.log(window.opener);
             console.log(p);
             
@@ -18,7 +18,12 @@
                 p.request("hello22", response => {
                     console.log("YAY", response);
                 })
-            }, 2000)
+            }, 1500);
+            
+            p.on("high", (req,res) => {
+                console.log(req);
+                res("High as a kite");
+            })
         </script>
     </body>
 </html>
