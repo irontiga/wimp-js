@@ -67,12 +67,10 @@
                 case "response":
                     // Response to a request
                     // Try avoid errors please
-                    
                     if(pendingRequests[data.requestID]){
                         pendingRequests[data.requestID](data) // , parsedEvent);
                         delete pendingRequests[data.requestID];
                     } else {
-                        console.log(pendingRequests);
                         //Wimp.error(event.source, `Unrecognized requestID '${data.requestID}' from '${data.request}' request.`, data.requestID)
                         console.error(`Unrecognized requestID '${data.requestID}' from '${data.request}' request.`)
                     }
@@ -120,12 +118,20 @@
             
             targets.forEach(target => {
                 const requestID = Math.random().toString(36).substr(2, 10);
-                options.requestID = requestID;
                 requestIDs.push(requestID);
-                console.log(options);
-                
+            });
+            
+            // Send the IDs BEFORE
+            Wimp._postMessage({window: event.source, origin: event.origin}, {
+                type: "response",
+                requestID: event.data.requestID,
+                requestIDs: requestIDs
+            })
+            
+            targets.forEach((target, i) => {
+                options.requestID = requestIDs[i];
                 // Make a pending request and then pass it on to the client
-                pendingRequests[requestID] = (response) => {
+                pendingRequests[requestIDs[i]] = (response) => {
                     Wimp._postMessage({window: event.source, origin: event.origin}, response);
                 }
                 // Send the clients request to the target
@@ -133,12 +139,6 @@
                     window: target.window,
                     origin: target.origin
                 }, options)
-            });
-            
-            Wimp._postMessage({window: event.source, origin: event.origin}, {
-                type: "response",
-                requestID: event.data.requestID,
-                requestIDs: requestIDs
             })
         }
         
@@ -316,7 +316,7 @@
                     
                     options.requestID = Math.random().toString(36).substr(2, 10);
                     options.type = "request";
-
+                    
                     if(!cb) {
                         promiseArray.push(new Promise((resolve, reject) => {
                             pendingRequests[options.requestID] = resolve;
@@ -340,14 +340,15 @@
                 options.type = "proxy";
                 options.target = this.selector;
                 
-                const initFunction = (response) => {
+                const initFunction = response => {
+                    
                     response.requestIDs.forEach(id => {
                         if(!cb) {
                             promiseArray.push(new Promise((resolve, reject) => {
                                 pendingRequests[id] = resolve;
                             }))
                         } else {
-                            pendingRequests[options.requestID] = cb;
+                            pendingRequests[id] = cb;
                         }
                     })
                     
@@ -355,15 +356,18 @@
                         return promiseArray.length == 1 ? promiseArray[0] : promiseArray;
                     }
                 }
+                
+                Wimp._postMessage(this.proxy, options);
+                
                 if(!cb){
                     return new Promise((resolve, reject) => {
-                        pendingRequests[initID] = resolve
-                    }).then(initFunction);
+                        pendingRequests[initID] = resolve;
+                    }).then(response => {
+                        return initFunction(response);
+                    });
                 } else {
                     pendingRequests[initID] = initFunction;
                 }
-                
-                Wimp._postMessage(this.proxy, options);
             }
             
         }

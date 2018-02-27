@@ -34,6 +34,10 @@
                 wProxy.request("high", response => {
                     console.log(response);
                 });
+                
+                wProxy.request("high").then(response => {
+                    console.log("PROM IS TOMOROW", response);
+                });
             }, 4000)
         </script>
     </body>
