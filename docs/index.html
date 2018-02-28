@@ -1,0 +1,161 @@
+---
+# Hello
+title: James
+layout: default
+headings:
+  - Introduction
+  - Basic usage
+  - API docs
+---
+
+
+<br>
+<h2>Wimp.js</h2>
+<h6>Making window.postMessage practical</h6>
+<br>
+
+<h4 id="introduction">Introduction</h4>
+Wimp's goal is to make window.postMessage easy and viable. It's inspired by both HTTP and websockets, making it familiar (hopefully) to web developers. 
+
+<h4 id="installation">Installation</h4>
+Just include a script tag in your html
+
+{% highlight html %}
+<script src="wimp.js"></script>
+{% endhighlight %}
+
+<h4 id="basic-usage">Basic usage</h4>
+In this example we're going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).
+<br>
+<b>index.html</b>
+{% highlight html %}
+<body>
+    <iframe src="iframe1.html" id="frame1"></iframe>
+
+    <script src="wimp.js"></script>
+    <script>
+        const frame1 = new Wimp("#frame1"); // Initialze a new Wimp, which will be able to cumminicate with #frame1
+
+        // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
+        frame1.request("height").then(height => {
+            document.getElementByID("#frame1").height = height; // Duh
+        })
+    </script>
+</body>
+{% endhighlight %}
+<b>frame1.html</b>
+{% highlight html %}
+<body>
+    ...
+    <script src="wimp.js"></script>
+    <script>
+        const container = new Wimp(window.parent); // Can also take a window object
+
+        // Listens for a "height" request. On that request it will pass both the data and a response function to your callback
+        container.on("height", (data, res) => {
+            res(document.body.scrollHeight);
+        })
+    </script>
+</body>
+{% endhighlight %}
+
+<h4 id="api-docs">API docs</h4>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>const myWimp = new Wimp(target [, proxy])</code></span>
+        Creates a new Wimp instance for cross frame communication.
+        <blockquote>
+            <p><b><code>target</code></b> - The iframe/window we're communicating with. Can be any of</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>Query selector</th>
+                        <td><code>String</code></td>
+                        <td>e.g. <code>"#frame1"</code></td>
+                    </tr>
+                    <tr>
+                        <th>Content window</th>
+                        <td><code>Object</code></td>
+                        <td>e.g. `window.parent` or `document.getElementByID("#frame1").contentWindow`. Can not be used in conjuction with `proxy`</td>
+                    </tr>
+                    <tr>
+                        <th><code>"*"</code> - Wildcard</th>
+                        <td><code>String</code></td>
+                        <td><code>Uses `window.frames`. Note that new iframes will not automatically be added.</code></td>
+                    </tr>
+                    <tr>
+                        <th>Registered target</th>
+                        <td><code>String</code></td>
+                        <td>A preregistered iframe's name. See **LINK ME UP BOIIIII**</td>
+                    </tr>
+                </tbody>
+            </table>
+        </blockquote>
+        
+        <blockquote>
+            <p><b><code>proxy</code></b> - If included, requests etc. will be sent through the proxy and to the target within it's DOM. It's the same as target, however when proxying is enabled, target can not be a content window.</p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myWimp.request(request, [options, ] callback)</code></span>
+        Sends a request, much like a HTTP GET/POST request
+        <blockquote>
+            <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
+        </blockquote>
+        
+        <blockquote>
+            <p><b><code>options</code></b> - <code>Object</code> Specifies options for the request. Can be omitted.</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>Request</th>
+                        <td>Request can also be omitted and defined within options</td>
+                    </tr>
+                    <tr>
+                        <th>*expectResponse*</th>
+                        <td>*NEED TO IMPLEMENT* - `Boolean`. Default: `true`. If false callback will not be required or called. Makes the request one way.</td>
+                    </tr>
+                    <tr>
+                        <th>data</th>
+                        <td>Data to be sent with the request. Can be anything, but note that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </blockquote>
+
+        <blockquote>
+            <p><b><code>callback(data)</code></b> - <code>Function</code> Called when the request completes. `data` is the response which the request receives</p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myWimp.on(request, fn)</code></span>
+        Much like a server route. Receives a request with data(passed to fn), and replies (again with a function passed to fn).
+        <blockquote>
+            <p><b><code>request</code></b> - <code>String</code> - corresponds to the <code>request</code> coming from myWimp.request. </p>
+        </blockquote>
+        
+        <blockquote>
+            <p><b><code>fn(data, res)</code></b> - <code>Function</code> Called whenever a new request comes in.</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>data</th>
+                        <td>Data that came with the request. Already parsed</td>
+                    </tr>
+                    <tr>
+                        <th><code>res(response), res.error(message)</code></th>
+                        <td><code>Function</code> - Response function which sends `response` back to the client. Or <code>res.error</code> in case of an error.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </blockquote>
+        
+    </div>
+</div>

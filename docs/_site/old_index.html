@@ -49,8 +49,6 @@
                     <div id="sidebar">
                         <ul class="section table-of-contents">
                             
-                            <li><a href="#introduction">Introduction</a></li>
-                            
                             <li><a href="#basic-usage">Basic usage</a></li>
                             
                             <li><a href="#api-docs">API docs</a></li>
@@ -62,150 +60,134 @@
                     </div>
                 </div>
                 <div class="col s12 m9 l10">
-                    <br>
-<h2>Wimp.js</h2>
-<h6>Making window.postMessage practical</h6>
-<br>
+                    <p><br /></p>
+<h2 id="wimpjs">Wimp.js</h2>
+<h5 id="making-windowpostmessage-practical">Making window.postMessage practical</h5>
+<p><br /></p>
 
 <h4 id="introduction">Introduction</h4>
-Wimp's goal is to make window.postMessage easy and viable. It's inspired by both HTTP and websockets, making it familiar (hopefully) to web developers. 
+<p>Wimp’s goal is to make window.postMessage easy and viable. It’s inspired by both HTTP and websockets, making it familiar (hopefully) to web developers.</p>
 
 <h4 id="installation">Installation</h4>
-Just include a script tag in your html
+<p>Just include a script tag in your html</p>
 
-<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span></code></pre></figure>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div></div>
 
 <h4 id="basic-usage">Basic usage</h4>
-In this example we're going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).
-<br>
-<b>index.html</b>
-<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;body&gt;</span>
-    <span class="nt">&lt;iframe</span> <span class="na">src=</span><span class="s">"iframe1.html"</span> <span class="na">id=</span><span class="s">"frame1"</span><span class="nt">&gt;&lt;/iframe&gt;</span>
+<p>In this example we’re going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).</p>
 
+<p><strong>index.html</strong></p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;iframe</span> <span class="na">src=</span><span class="s">"iframe1.html"</span> <span class="na">id=</span><span class="s">"frame1"</span><span class="nt">&gt;&lt;/iframe&gt;</span>
+    
     <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
     <span class="nt">&lt;script&gt;</span>
         <span class="kd">const</span> <span class="nx">frame1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">);</span> <span class="c1">// Initialze a new Wimp, which will be able to cumminicate with #frame1</span>
-
+        
         <span class="c1">// A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.</span>
         <span class="nx">frame1</span><span class="p">.</span><span class="nx">request</span><span class="p">(</span><span class="s2">"height"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">height</span> <span class="o">=&gt;</span> <span class="p">{</span>
             <span class="nb">document</span><span class="p">.</span><span class="nx">getElementByID</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">).</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">height</span><span class="p">;</span> <span class="c1">// Duh</span>
         <span class="p">})</span>
     <span class="nt">&lt;/script&gt;</span>
-<span class="nt">&lt;/body&gt;</span></code></pre></figure>
-<b>frame1.html</b>
-<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;body&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+</code></pre></div></div>
+<p><strong>frame1.html</strong></p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;body&gt;</span>
     ...
     <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
     <span class="nt">&lt;script&gt;</span>
         <span class="kd">const</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">parent</span><span class="p">);</span> <span class="c1">// Can also take a window object</span>
-
+        
         <span class="c1">// Listens for a "height" request. On that request it will pass both the data and a response function to your callback</span>
         <span class="nx">container</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
             <span class="nx">res</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="p">);</span>
         <span class="p">})</span>
     <span class="nt">&lt;/script&gt;</span>
-<span class="nt">&lt;/body&gt;</span></code></pre></figure>
+<span class="nt">&lt;/body&gt;</span>
+</code></pre></div></div>
 
 <h4 id="api-docs">API docs</h4>
+
+<blockquote>
+  <h5 id="const-mywimp--new-wimptarget--proxy"><code class="highlighter-rouge">const myWimp = new Wimp(target [, proxy])</code></h5>
+</blockquote>
+
+<p>Creates a new Wimp instance for cross frame communication.</p>
+
+<h6 id="target---the-iframewindow-were-communicating-with-can-be-any-of"><code class="highlighter-rouge">target</code> - The iframe/window we’re communicating with. Can be any of</h6>
+
+<table>
+  <thead>
+    <tr>
+      <th><code class="highlighter-rouge">target</code></th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Query selector</strong></td>
+      <td><code class="highlighter-rouge">String</code></td>
+      <td>e.g. <code class="highlighter-rouge">"#frame1"</code></td>
+    </tr>
+    <tr>
+      <td><strong>Content window</strong></td>
+      <td><code class="highlighter-rouge">Object</code></td>
+      <td>e.g. <code class="highlighter-rouge">window.parent</code> or <code class="highlighter-rouge">document.getElementByID("#frame1").contentWindow</code>. Can not be used in conjuction with <code class="highlighter-rouge">proxy</code></td>
+    </tr>
+    <tr>
+      <td><strong><code class="highlighter-rouge">"*"</code>(Wildcard)</strong></td>
+      <td><code class="highlighter-rouge">String</code></td>
+      <td>Uses <code class="highlighter-rouge">window.frames</code>. Note that new iframes will not automatically be added.</td>
+    </tr>
+    <tr>
+      <td><strong>Registered target</strong></td>
+      <td><code class="highlighter-rouge">String</code></td>
+      <td>A preregistered iframe’s name. See <strong>LINK ME UP BOIIIII</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="highlighter-rouge">proxy</code> - If included, requests etc. will be sent through the proxy and to the target within it’s DOM. It’s the same as target, however when proxying is enabled, target can not be a content window.</p>
 
 <div class="card">
     <div class="card-content">
         <span class="card-title"><code>const myWimp = new Wimp(target [, proxy])</code></span>
-        Creates a new Wimp instance for cross frame communication.
-        <blockquote>
-            <p><b><code>target</code></b> - The iframe/window we're communicating with. Can be any of</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>Query selector</th>
-                        <td><code>String</code></td>
-                        <td>e.g. <code>"#frame1"</code></td>
-                    </tr>
-                    <tr>
-                        <th>Content window</th>
-                        <td><code>Object</code></td>
-                        <td>e.g. `window.parent` or `document.getElementByID("#frame1").contentWindow`. Can not be used in conjuction with `proxy`</td>
-                    </tr>
-                    <tr>
-                        <th><code>"*"</code> - Wildcard</th>
-                        <td><code>String</code></td>
-                        <td><code>Uses `window.frames`. Note that new iframes will not automatically be added.</code></td>
-                    </tr>
-                    <tr>
-                        <th>Registered target</th>
-                        <td><code>String</code></td>
-                        <td>A preregistered iframe's name. See **LINK ME UP BOIIIII**</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>proxy</code></b> - If included, requests etc. will be sent through the proxy and to the target within it's DOM. It's the same as target, however when proxying is enabled, target can not be a content window.</p>
-        </blockquote>
+        <div></div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myWimp.request(request, [options, ] callback)</code></span>
-        Sends a request, much like a HTTP GET/POST request
-        <blockquote>
-            <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>options</code></b> - <code>Object</code> Specifies options for the request. Can be omitted.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>Request</th>
-                        <td>Request can also be omitted and defined within options</td>
-                    </tr>
-                    <tr>
-                        <th>*expectResponse*</th>
-                        <td>*NEED TO IMPLEMENT* - `Boolean`. Default: `true`. If false callback will not be required or called. Makes the request one way.</td>
-                    </tr>
-                    <tr>
-                        <th>data</th>
-                        <td>Data to be sent with the request. Can be anything, but note that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
+<h5 id="mywimprequestrequest-options--callback"><code class="highlighter-rouge">myWimp.request(request, [options, ] callback)</code></h5>
+<p>Sends a request, much like a HTTP GET/POST request</p>
+<blockquote>
+  <p><code class="highlighter-rouge">request</code> - <code class="highlighter-rouge">String</code> The request string you’re trying to make. Think of it as a URL.</p>
+</blockquote>
 
-        <blockquote>
-            <p><b><code>callback(data)</code></b> - <code>Function</code> Called when the request completes. `data` is the response which the request receives</p>
-        </blockquote>
-    </div>
-</div>
+<blockquote>
+  <p><code class="highlighter-rouge">options</code> - <code class="highlighter-rouge">Object</code> Specifies options for the request. Can be omitted.</p>
+  <ul>
+    <li><strong>request</strong> - Request can also be omitted and defined within options</li>
+    <li><strong><em>expectResponse</em></strong> <em>NEED TO IMPLEMENT</em> - <code class="highlighter-rouge">Boolean</code>. Default: <code class="highlighter-rouge">true</code>. If false callback will not be required or called. Makes the request one way.</li>
+    <li><strong>data</strong> - Data to be sent with the request. Can be anything, but note that it will go through <code class="highlighter-rouge">JSON.stringify</code> and then <code class="highlighter-rouge">JSON.parse</code></li>
+  </ul>
+</blockquote>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myWimp.on(request, fn)</code></span>
-        Much like a server route. Receives a request with data(passed to fn), and replies (again with a function passed to fn).
-        <blockquote>
-            <p><b><code>request</code></b> - <code>String</code> - corresponds to the <code>request</code> coming from myWimp.request. </p>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>fn(data, res)</code></b> - <code>Function</code> Called whenever a new request comes in.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>data</th>
-                        <td>Data that came with the request. Already parsed</td>
-                    </tr>
-                    <tr>
-                        <th><code>res(response), res.error(message)</code></th>
-                        <td><code>Function</code> - Response function which sends `response` back to the client. Or <code>res.error</code> in case of an error.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
-        
-    </div>
-</div>
+<blockquote>
+  <p><code class="highlighter-rouge">callback(data)</code> - <code class="highlighter-rouge">Function</code> Called when the request completes. <code class="highlighter-rouge">data</code> is the response which the request receives</p>
+</blockquote>
+
+<h5 id="mywimponrequest-fn"><code class="highlighter-rouge">myWimp.on(request, fn)</code></h5>
+<p>Much like a server route. Receives a request with data(passed to fn), and replies (again with a function passed to fn).</p>
+<blockquote>
+  <p><code class="highlighter-rouge">request</code> - <code class="highlighter-rouge">String</code> corresponds to the <code class="highlighter-rouge">request</code> coming from myWimp.request. 
+<code class="highlighter-rouge">fn(data, res)</code> - <code class="highlighter-rouge">Function</code>. Called whenever a new request comes in.</p>
+  <ul>
+    <li><strong>data</strong> - Data that came with the request. Already parsed</li>
+    <li><strong><code class="highlighter-rouge">res(response), res.error(message)</code></strong> <code class="highlighter-rouge">Function</code> - Response function which sends <code class="highlighter-rouge">response</code> back to the client. Or <code class="highlighter-rouge">res.error</code> in case of an error.</li>
+  </ul>
+</blockquote>
+
                 </div>
             </div>
         </div>
