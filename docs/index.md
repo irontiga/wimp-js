@@ -10,7 +10,7 @@ headings:
 
 <br>
 ## Wimp.js
-##### Making window.postMessage more like HTTP and  websockets
+##### Making window.postMessage practical
 <br>
 
 #### Introduction
