@@ -10,8 +10,6 @@
     // Outgoing HTTP requests
     const pendingRequests = {}; // "hgad683gfy8q" : function(data, event) <-- event.data already parsed
     
-    const routes = []; // [ { "window": "window", "routes": { "hello": fn(req, res) } } ]
-    
     // Streams ~ websockets .. do we need websockets? Nope we dont't :D Wimp("balancePage").on("balance-update", data => { ... })
     // Listening to streams
     // const connectedStreams = { "name": ... }
@@ -27,9 +25,6 @@
 
     class Wimp {
         
-        static get routes(){
-            return routes;
-        }
         static get pendingRequests(){
             return pendingRequests;
         }
@@ -78,14 +73,14 @@
                 case "request":
                     // All the "on" things
                     
-                    const index = Wimp.windowRouteIndex(event.source);
-                    
-                    if(index > -1 && routes[index].routes[data.request]){
-                        return routes[index].routes[data.request](data, Wimp._responseFactory(event, data.requestID));
-                    }
-                    // Else... :/
-                    return Wimp.error(event.source, `Unrecognized request '${data.request}'`, data.requestID);
-                    
+                    wimps.forEach(w => {
+                        for(const target of w.targets){
+                            if(target.window == event.source){
+                                if(w.routes[data.request]){ w.routes[data.request](data, Wimp._responseFactory(event, data.requestID)) }
+                                break;
+                            }
+                        }
+                    });
                     break;
                 case "proxy":
                     // Relay a proxied request/response
@@ -179,25 +174,12 @@
             return res;
         }
         
-        static windowRouteIndex(targetWindow){
-            // Returns index of a window object in routes
-            let index = -1;
-            // Slice and revrse so that newest route is prioritized
-            routes.slice().reverse().forEach((target, i) => {
-                if(target.window == targetWindow){
-                    // Adjust the index for the reversing
-                    index = routes.length - 1 - i;
-                }
-            })
-            return index;
-        }
-        
         // frame could be an array, proxy can only be a string or an object
         constructor(targets, proxy){
             wimps.push(this);
             
             // Outgoing
-            this._pendingRequests = {};
+            // this._pendingRequests = {};
             // Incoming
             this.routes = {};
             // Store targets
@@ -357,16 +339,16 @@
                     }
                 }
                 
-                Wimp._postMessage(this.proxy, options);
-                
                 if(!cb){
                     return new Promise((resolve, reject) => {
                         pendingRequests[initID] = resolve;
+                        Wimp._postMessage(this.proxy, options);
                     }).then(response => {
                         return initFunction(response);
                     });
                 } else {
                     pendingRequests[initID] = initFunction;
+                    Wimp._postMessage(this.proxy, options);
                 }
             }
             
@@ -374,20 +356,21 @@
         // Like HTTP, but from the server's perspective - returns something - not to be confused with Stream.on("...")
         // fn(options)
         on(request, fn){
-            this.targets.forEach(target => {
-                const i = Wimp.windowRouteIndex(target.window);
-                if(i < 0){
-                    routes.push({
-                        window: target.window,
-                        routes: {
-                            [request]: fn
-                        }
-                    })
-                }
-                else{
-                    routes[i].routes[request] = fn
-                }
-            })
+            this.routes[request] = fn;
+//            this.targets.forEach(target => {
+//                const i = Wimp.windowRouteIndex(target.window);
+//                if(i < 0){
+//                    routes.push({
+//                        window: target.window,
+//                        routes: {
+//                            [request]: fn
+//                        }
+//                    })
+//                }
+//                else{
+//                    routes[i].routes[request] = fn
+//                }
+//            })
         }
         
         addTarget(target){
