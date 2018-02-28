@@ -10,6 +10,9 @@
     // Outgoing HTTP requests
     const pendingRequests = {}; // "hgad683gfy8q" : function(data, event) <-- event.data already parsed
     
+
+    const proxiedStreams = {}; // { name: [window, window, window] // All the targets}
+    
     // Streams ~ websockets .. do we need websockets? Nope we dont't :D Wimp("balancePage").on("balance-update", data => { ... })
     // Listening to streams
     // const connectedStreams = { "name": ... }
@@ -40,7 +43,7 @@
         
         // Use newSelector = document.querySelector("my-polymer-app").shadowRoot.querySelectorAll for accessing iframes in the shadowRoot
         // If you don't call Wimp.listen you can't make requests or receive messages
-        static listen(newSelector){
+        static init(newSelector){
             // Maybe should be instance.listen which also sends the ready event to the targets. Notifying them that we are ready for requests.
             
             DOMSelector = newSelector || DOMSelector;
@@ -56,7 +59,6 @@
                 source: event.source,
                 origin: event.origin
             };
-            
             
             switch(data.type){
                 case "response":
@@ -86,6 +88,50 @@
                     // Relay a proxied request/response
                     Wimp.relay(parsedEvent);
                     break;
+                case "joinStream":
+                    wimps.forEach(w => {
+                        if(w.streams[data.name]){
+                            w.streams[data.name].fn(data.data, event);
+                        } else {
+                            // Do nothing. Stream doesn't exist so just ignore it
+                        }
+                    })
+                    
+                    break;
+                case "streamMessage":
+                    wimps.forEach(w => {
+                        if(w.listeners[data.name]){
+                            w.listeners[data.name](data.data, event);
+                        } else {
+                            // No one is listening to this stream...wonder who sent the message :joy:
+                        }
+                    })
+                    if(proxiedStreams[data.name]){
+                        proxiedStreams[data.name].forEach(target => {
+                            Wimp._postMessage(target, data);
+                        })
+                    }
+                    
+                    break;
+                case "joinProxyStream":
+                    // There should only be one, altho I guess it's possible for there to be multiple...
+                    const targets = Wimp._getTargetWindows(data.target);
+                    
+                    data.type = "joinStream";
+                    delete data.target;
+                    
+                    targets.forEach(target => {
+                        console.log(data, target);
+                        Wimp._postMessage(target, data);
+                    })
+                    if(proxiedStreams[name]){
+                        if(proxiedStreams[data.name].indexOf(event.source) == -1){
+                            proxiedStreams[data.name].push(event.source);
+                        }
+                    } else {
+                        proxiedStreams[data.name] = [event.source];
+                    }
+                    break;
                 case "ready":
                     // When the target(s) are all ready for requests
                     break;
@@ -98,12 +144,8 @@
             this.registeredTargets[name] = element;
         }
         
-        static createStream(){
-            // return new Stream()
-        }
-        
         static relay(event){
-            // Proxy requests and streams etc.
+            // Proxy requests
             const targets = Wimp._getTargetWindows({selector: event.data.target, origin: "*"});
             const requestIDs = [];
             
@@ -176,12 +218,16 @@
         
         // frame could be an array, proxy can only be a string or an object
         constructor(targets, proxy){
+            if(proxy && !proxyingEnabled){
+                throw "Proxying disabled. Enable it with `Wimp.proxy = true;`"
+            }
+            
             wimps.push(this);
             
-            // Outgoing
-            // this._pendingRequests = {};
             // Incoming
             this.routes = {};
+            this.streams = {};
+            this.listeners = {}; // Listeners for streams
             // Store targets
             this.targets = [];
             // Store original selector(if it is one)
@@ -268,10 +314,6 @@
             }
         }
         
-        _listener(){
-            
-        }
-        
         // Like a HTTP request, it's once off - fetches/does something
         // data stored in options.data
         request(request, options, cb){
@@ -353,24 +395,72 @@
             }
             
         }
+        
         // Like HTTP, but from the server's perspective - returns something - not to be confused with Stream.on("...")
         // fn(options)
         on(request, fn){
             this.routes[request] = fn;
-//            this.targets.forEach(target => {
-//                const i = Wimp.windowRouteIndex(target.window);
-//                if(i < 0){
-//                    routes.push({
-//                        window: target.window,
-//                        routes: {
-//                            [request]: fn
-//                        }
-//                    })
-//                }
-//                else{
-//                    routes[i].routes[request] = fn
-//                }
-//            })
+        }
+        
+        // const myStream = new Wimp("*").createStream("balance", (req, res) => {})
+        createStream(name, options, joinFn){
+            // Name of the stream, it's options, and function to be called whenever a user joins. Options of name can be omitted
+            if ( typeof name != "string" ) { options = name; joinFn = options; }
+            if ( typeof options == "function" ) { joinFn = options; options = void 0; }
+            options = options || {};
+            options.name = options.name || name;
+            if ( !options.name ) { throw "Name must be specified" };
+            
+            this.streams[name] = {
+                fn: (data, event) => {
+                    if(this.streams[name].targets.indexOf(event.source) < 0){
+                        this.streams[name].targets.push(event.source);
+                    }
+                    joinFn(data, (response) => {
+                        Wimp._postMessage({window: event.source, origin: event.origin}, {
+                            type: "streamMessage",
+                            name: name,
+                            data: response
+                        })
+                    });
+                },
+                targets: []
+            }
+            
+            return {
+                emit: data => {
+                    options = {
+                        name: name,
+                        type: "streamMessage",
+                        data: data
+                    }
+                    this.streams[name].targets.forEach(target => {
+                        Wimp._postMessage(target, options);
+                    })
+                }
+            }
+            
+        }
+        // const myDad = new Wimp(window.parent).listen("balance", update => { })
+        listen(name, fn){
+            if(this.proxy){
+                Wimp._postMessage(this.proxy, {
+                    type: "joinProxyStream",
+                    name: name,
+                    target: {
+                        selector: this.selector,
+                        origin: "*"
+                    }
+                })
+            } else {
+                this.targets.forEach(target => {
+                    Wimp._postMessage(target, {
+                        type: "joinStream",
+                        name: name
+                    })
+                })
+            }
+            this.listeners[name] = fn;
         }
         
         addTarget(target){

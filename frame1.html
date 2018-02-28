@@ -7,7 +7,8 @@
         
         <script src="wimp.js"></script>
         <script type="text/javascript">
-            Wimp.listen();
+            Wimp.init();
+            Wimp.proxy = true;
             
             const w = new Wimp(window.parent);
             
@@ -39,6 +40,18 @@
                     console.log("PROM IS TOMOROW", response);
                 });
             }, 4000)
+            
+            
+            
+            streamListenWimp = new Wimp(window.parent).listen("balance", (data) => {
+                console.log("Listened for balance of " + data);
+            })
+            
+            setTimeout(() => {
+                proxyStreamListenWimp = new Wimp("popup", window.parent).listen("time", data => {
+                    console.log("It's " + data)
+                })
+            }, 1000)
         </script>
     </body>
 </html>

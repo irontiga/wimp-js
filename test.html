@@ -19,39 +19,50 @@
         <script>
             
             
-            Wimp.listen();
+            Wimp.init();
             
-            Wimp.proxyingEnabled = true;
+            Wimp.proxy = true;
             
             myWimp = new Wimp("*");
-            
+//            
             const popup = window.open("popup.html", "FRAME222222");
             Wimp.registerTarget("popup", popup);
-            
-            console.log(popup);
-            
+//            
+//            console.log(popup);
+//            
             myWimp.addTarget(popup);
-            
-            myWimp.on("hello", (req, res) => {
-                console.log(req);
-                res("Heeeeloooo from test.html");
+//            
+//            myWimp.on("hello", (req, res) => {
+//                console.log(req);
+//                res("Heeeeloooo from test.html");
+//            })
+//            
+//            myWimp.on("hello22", (req, res) => {
+//                console.log(req);
+//                res("Heeeeloooo22 from test.html");
+//            });
+//            
+//            Wimp.registerTarget("frame1", "#frame1");
+//            
+//            wimp2 = new Wimp("frame1");
+//            
+//            wimp2.on("jj", (req,res) => {
+//                console.log(req)
+//                res("I LOVE YOU");
+//            })
+//            
+//            console.log(wimp2);
+            let cnt = 0;
+            streamWimp = new Wimp("*").createStream("balance", (data, res) => {
+                res(cnt);
+                cnt++;
             })
+            setInterval(()=> {
+                //streamWimp.emit(cnt)
+                cnt++;
+            },2000)
             
-            myWimp.on("hello22", (req, res) => {
-                console.log(req);
-                res("Heeeeloooo22 from test.html");
-            });
             
-            Wimp.registerTarget("frame1", "#frame1");
-            
-            wimp2 = new Wimp("frame1");
-            
-            wimp2.on("jj", (req,res) => {
-                console.log(req)
-                res("I LOVE YOU");
-            })
-            
-            console.log(wimp2);
         </script>
     </body>
 </html>

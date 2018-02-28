@@ -8,7 +8,8 @@
         <script src="wimp.js"></script>
         <script type="text/javascript">
             console.log("2222");
-            Wimp.listen();
+            Wimp.init();
+            Wimp.proxy = true;
 
             const p = new Wimp(window.opener);
             console.log(window.opener);
@@ -24,6 +25,15 @@
                 console.log(req);
                 res("High as a kite");
             })
+            
+            
+            streamWimp = new Wimp("*").createStream("time", (data, res) => {
+                res(new Date().getTime());
+            })
+            setInterval(()=> {
+                streamWimp.emit(new Date().getTime())
+            },1000)
+            console.log(streamWimp);
         </script>
     </body>
 </html>
