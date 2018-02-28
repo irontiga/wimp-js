@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.11.0/themes/prism.min.css">
+        
+        <style>
+            ul:not(.section){
+                margin: 2px 0 !important;
+                padding:6px;
+                padding-left: 20px !important;
+            }
+            ul:not(.section) li {
+                list-style: !important;
+                padding: 8px;
+            }
+            ul:not(.section) li:not(:last-child){
+                /*border-bottom: 1px solid rgba(0,0,0,0.15);*/
+            }
+
+            code{
+                background: rgba(0,0,0,0.1);
+            }
+            blockquote p {
+                margin: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col hide-on-small-only m3 l2">
+                    <div id="sidebar">
+                        <ul class="section table-of-contents">
+                            {% for heading in page.headings %}
+                            <li><a href="#{{ heading | slugify }}">{{ heading }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col s12 m9 l10">
+                    {{content}}
+                </div>
+            </div>
+        </div>
+
+            
+            
+
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/js/materialize.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.11.0/prism.min.js"></script>
+        
+        <script>
+            $(document).ready(function(){
+                $('.table-of-contents').scrollSpy();
+                $('#sidebar').pushpin();
+            });
+
+        </script>
+    </body>
+</html>

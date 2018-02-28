@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.11.0/themes/prism.min.css">
+        
+        <style>
+            ul:not(.section){
+                margin: 2px 0 !important;
+                padding:6px;
+                padding-left: 20px !important;
+            }
+            ul:not(.section) li {
+                list-style: !important;
+                padding: 8px;
+            }
+            ul:not(.section) li:not(:last-child){
+                /*border-bottom: 1px solid rgba(0,0,0,0.15);*/
+            }
+
+            code{
+                background: rgba(0,0,0,0.1);
+            }
+            blockquote p {
+                margin: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col hide-on-small-only m3 l2">
+                    <div id="sidebar">
+                        <ul class="section table-of-contents">
+                            
+                            <li><a href="#basic-usage">Basic usage</a></li>
+                            
+                            <li><a href="#api-docs">API docs</a></li>
+                            
+                        </ul>
+                    </div>
+                </div>
+                <div class="col s12 m9 l10">
+                    <p><br /></p>
+<h2 id="wimpjs">Wimp.js</h2>
+<h5 id="making-windowpostmessage-more-like-http-and--websockets">Making window.postMessage more like HTTP and  websockets</h5>
+<p><br /></p>
+
+<h4 id="introduction">Introduction</h4>
+<p>Wimp’s goal is to make window.postMessage easy and viable. It’s inspired by both HTTP and websockets, making it familiar (hopefully) to web developers.</p>
+
+<h4 id="installation">Installation</h4>
+<p>Just include a script tag in your html</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<h4 id="basic-usage">Basic usage</h4>
+<p>In this example we’re going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).</p>
+
+<p><strong>index.html</strong></p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;iframe</span> <span class="na">src=</span><span class="s">"iframe1.html"</span> <span class="na">id=</span><span class="s">"frame1"</span><span class="nt">&gt;&lt;/iframe&gt;</span>
+    
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script&gt;</span>
+        <span class="kd">const</span> <span class="nx">frame1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">);</span> <span class="c1">// Initialze a new Wimp, which will be able to cumminicate with #frame1</span>
+        
+        <span class="c1">// A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.</span>
+        <span class="nx">frame1</span><span class="p">.</span><span class="nx">request</span><span class="p">(</span><span class="s2">"height"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">height</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nb">document</span><span class="p">.</span><span class="nx">getElementByID</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">).</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">height</span><span class="p">;</span> <span class="c1">// Duh</span>
+        <span class="p">})</span>
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+</code></pre></div></div>
+<p><strong>frame1.html</strong></p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;body&gt;</span>
+    ...
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script&gt;</span>
+        <span class="kd">const</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">parent</span><span class="p">);</span> <span class="c1">// Can also take a window object</span>
+        
+        <span class="c1">// Listens for a "height" request. On that request it will pass both the data and a response function to your callback</span>
+        <span class="nx">container</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nx">res</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="p">);</span>
+        <span class="p">})</span>
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+</code></pre></div></div>
+
+<h4 id="api-docs">API docs</h4>
+
+<h5 id="const-mywimp--new-wimptarget--proxy"><code class="highlighter-rouge">const myWimp = new Wimp(target [, proxy])</code></h5>
+<p>Creates a new Wimp instance for cross frame communication.</p>
+<blockquote>
+  <p><code class="highlighter-rouge">target</code> - The iframe/window we’re communicating with. Can be any of</p>
+  <ul>
+    <li><strong>Query selector</strong> - <code class="highlighter-rouge">String</code> e.g. <code class="highlighter-rouge">"#frame1"</code></li>
+    <li><strong>Content window</strong> - <code class="highlighter-rouge">Object</code> e.g. <code class="highlighter-rouge">window.parent</code> or <code class="highlighter-rouge">document.getElementByID("#frame1").contentWindow</code>. Can not be used in conjuction with <code class="highlighter-rouge">proxy</code></li>
+    <li><strong><code class="highlighter-rouge">"*"</code></strong> - Wildcard <code class="highlighter-rouge">String</code> which uses <code class="highlighter-rouge">window.frames</code>. Note that new iframes will not automatically be added.</li>
+    <li><strong>Registered target</strong> - <code class="highlighter-rouge">String</code> - A preregistered iframe’s name. See <strong>LINK ME UP BOIIIII</strong></li>
+  </ul>
+</blockquote>
+
+<blockquote>
+  <p><code class="highlighter-rouge">proxy</code> - If included, requests etc. will be sent through the proxy and to the target within it’s DOM. It’s the same as target, however when proxying is enabled, target can not be a content window.</p>
+</blockquote>
+
+<h5 id="mywimprequestrequest-options--callback"><code class="highlighter-rouge">myWimp.request(request, [options, ] callback)</code></h5>
+<p>Sends a request, much like a HTTP GET/POST request</p>
+<blockquote>
+  <p><code class="highlighter-rouge">request</code> - <code class="highlighter-rouge">String</code> The request string you’re trying to make. Think of it as a URL.</p>
+</blockquote>
+
+<blockquote>
+  <p><code class="highlighter-rouge">options</code> - <code class="highlighter-rouge">Object</code> Specifies options for the request. Can be omitted.</p>
+  <ul>
+    <li><strong>request</strong> - Request can also be omitted and defined within options</li>
+    <li><strong><em>expectResponse</em></strong> <em>NEED TO IMPLEMENT</em> - <code class="highlighter-rouge">Boolean</code>. Default: <code class="highlighter-rouge">true</code>. If false callback will not be required or called. Makes the request one way.</li>
+    <li><strong>data</strong> - Data to be sent with the request. Can be anything, but note that it will go through <code class="highlighter-rouge">JSON.stringify</code> and then <code class="highlighter-rouge">JSON.parse</code></li>
+  </ul>
+</blockquote>
+
+<blockquote>
+  <p><code class="highlighter-rouge">callback(data)</code> - <code class="highlighter-rouge">Function</code> Called when the request completes. <code class="highlighter-rouge">data</code> is the response which the request receives</p>
+</blockquote>
+
+<h5 id="mywimponrequest-fn"><code class="highlighter-rouge">myWimp.on(request, fn)</code></h5>
+<p>Much like a server route. Receives a request with data(passed to fn), and replies (again with a function passed to fn).</p>
+<blockquote>
+  <p><code class="highlighter-rouge">request</code> - <code class="highlighter-rouge">String</code> corresponds to the <code class="highlighter-rouge">request</code> coming from myWimp.request. 
+<code class="highlighter-rouge">fn(data, res)</code> - <code class="highlighter-rouge">Function</code>. Called whenever a new request comes in.</p>
+  <ul>
+    <li><strong>data</strong> - Data that came with the request. Already parsed</li>
+    <li><strong><code class="highlighter-rouge">res(response), res.error(message)</code></strong> <code class="highlighter-rouge">Function</code> - Response function which sends <code class="highlighter-rouge">response</code> back to the client. Or <code class="highlighter-rouge">res.error</code> in case of an error.</li>
+  </ul>
+</blockquote>
+
+                </div>
+            </div>
+        </div>
+
+            
+            
+
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/js/materialize.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.11.0/prism.min.js"></script>
+        
+        <script>
+            $(document).ready(function(){
+                $('.table-of-contents').scrollSpy();
+                $('#sidebar').pushpin();
+            });
+
+        </script>
+    </body>
+</html>
