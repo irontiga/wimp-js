@@ -2,6 +2,7 @@
 <html>
     <head>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.11.0/themes/prism.min.css">
         
@@ -21,6 +22,7 @@
 
             code{
                 background: rgba(0,0,0,0.1);
+                font-family: "Roboto Mono", monospace;
             }
             blockquote p {
                 margin: 0;
@@ -39,13 +41,16 @@
                 font-size:12.5px;
                 font-weight: 500;
             }
+            code[class*=language-], pre[class*=language-]{
+                font-family: "Roboto Mono", monspace;
+            }
         </style>
     </head>
 
     <body>
         <div class="container">
             <div class="row">
-                <div class="col hide-on-small-only m3 l2">
+                <div class="col hide-on-small-only m4 l3">
                     <div id="sidebar">
                         <ul class="section table-of-contents">
                             
@@ -55,16 +60,22 @@
                             
                             <li><a href="#api-docs">API docs</a></li>
                             
+                            <li><a href="#streams">Streams</a></li>
+                            
+                            <li><a href="#static-properties-and-methods">Static properties and methods</a></li>
+                            
                         </ul>
                         <a href="https://github.com/irontiga/wimp-js/" class="btn-flat waves-effect waves-red red-text text-lighten-2" target="_blank">Github<i class="material-icons right">launch</i></a>
                         <br><br>
-                        <a href="https://github.com/irontiga/wimp-js/releases/download/v0.0.1/wimp.js" class="waves-effect waves-light red lighten-2 btn-flat white-text" target="_blank">Download <i class="material-icons right">cloud_download</i></a>
+                        <a href="https://github.com/irontiga/wimp-js/releases/download/v0.0.2/wimp.js" class="waves-effect waves-light red lighten-2 btn-flat white-text" target="_blank">Download<i class="material-icons right">cloud_download</i></a>
+                        <br>
+                        <i class="grey-text text-lighten-1">wimp.js v0.0.1 </i>
                     </div>
                 </div>
-                <div class="col s12 m9 l10">
+                <div class="col s12 m8 l9">
                     <br>
 <h2>Wimp.js</h2>
-<h6>Making window.postMessage practical</h6>
+<h6>Making window.postMessage practical and pleasurable</h6>
 <br>
 
 <h4 id="introduction">Introduction</h4>
@@ -113,7 +124,7 @@ In this example we're going to have index.html fetch the height of an iframe via
         <span class="card-title"><code>const myWimp = new Wimp(target [, proxy])</code></span>
         Creates a new Wimp instance for cross frame communication.
         <blockquote>
-            <p><b><code>target</code></b> - The iframe/window we're communicating with. Can be any of</p>
+            <p><b><code>target</code></b> - The iframe/window we're communicating with. Can be any of the following, or an array of any number of the following.</p>
             <table class="tabbed">
                 <tbody>
                     <tr>
@@ -124,7 +135,7 @@ In this example we're going to have index.html fetch the height of an iframe via
                     <tr>
                         <th>Content window</th>
                         <td><code>Object</code></td>
-                        <td>e.g. `window.parent` or `document.getElementByID("#frame1").contentWindow`. Can not be used in conjuction with `proxy`</td>
+                        <td>e.g. <code>window.parent</code> or <code>document.getElementByID("#frame1").contentWindow</code>. Can not be used in conjuction with <code>proxy</code></td>
                     </tr>
                     <tr>
                         <th><code>"*"</code> - Wildcard</th>
@@ -135,6 +146,11 @@ In this example we're going to have index.html fetch the height of an iframe via
                         <th>Registered target</th>
                         <td><code>String</code></td>
                         <td>A preregistered iframe's name. See **LINK ME UP BOIIIII**</td>
+                    </tr>
+                    <tr>
+                        <th><code>Object</code></th>
+                        <td><code>Object</code></td>
+                        <td>Can be an object like <code>{selector: "#frame1", origin: "mydomain.com"}</code>, where selector can be any of the above.</td>
                     </tr>
                 </tbody>
             </table>
@@ -148,7 +164,7 @@ In this example we're going to have index.html fetch the height of an iframe via
 
 <div class="card">
     <div class="card-content">
-        <span class="card-title"><code>myWimp.request(request, [options, ] callback)</code></span>
+        <span class="card-title"><code>myWimp.request(request [, options], callback)</code></span>
         Sends a request, much like a HTTP GET/POST request
         <blockquote>
             <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
@@ -163,8 +179,8 @@ In this example we're going to have index.html fetch the height of an iframe via
                         <td>Request can also be omitted and defined within options</td>
                     </tr>
                     <tr>
-                        <th>*expectResponse*</th>
-                        <td>*NEED TO IMPLEMENT* - `Boolean`. Default: `true`. If false callback will not be required or called. Makes the request one way.</td>
+                        <th>expectResponse</th>
+                        <td><code>Boolean</code> - Default: <code>true</code>. If <code>false</code> callback will not be called. Makes the request one way.</td>
                     </tr>
                     <tr>
                         <th>data</th>
@@ -203,9 +219,137 @@ In this example we're going to have index.html fetch the height of an iframe via
                 </tbody>
             </table>
         </blockquote>
-        
     </div>
 </div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myWimp.addTarget(target)</code></span>
+        Adds a target to the instance of Wimp. Useful for example when trying to communicate with all frames AND a popup window.
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">myWimp</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"*); // All iframes
+myWimp.addTarget(window.open("</span><span class="nx">popup</span><span class="p">.</span><span class="nx">html</span><span class="s2">")); // Add the popup window to the instance</span></code></pre></figure>
+        <blockquote>
+            <p><b><code>Target</code></b> - <code>Many</code> - Same as <code>new Wimp(target)</code>.</p>
+        </blockquote>
+    </div>
+</div>
+
+<h4 id="streams">Streams</h4>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myStream = new Wimp("*").createStream(name [, options], joinFn)</code></span>
+        Creates a new stream, much like a websocket.</code>
+        <blockquote>
+            <p><b><code>name</code></b> - <code>String</code> - Name of the stream (kinda like the URL) for client to connect to.</p>
+        </blockquote>
+
+        <blockquote>
+            <p><b><code>options</code></b> - <code>Object</code> Optional options object. Specifies options for the stream.</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>Name</th>
+                        <td>Name can be omitted and specified in options instead. Has higher priority.</td>
+                    </tr>
+                    <tr>
+                        <th>...</th>
+                        <td><code>Function</code>...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </blockquote>
+        
+        <blockquote>
+            <p><b><code>joinFn(data, res)</code></b> - <code>Function</code> Called upon every new client connection</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>data</th>
+                        <td>Client can send data along with the connection request. This would be it</td>
+                    </tr>
+                    <tr>
+                        <th><code>res(response)</code></th>
+                        <td><code>Function</code> - Sends a response back to the client. This response will be treated exactly the same as <code>myStream.emit(response)</code>, but will only be sent to this particular client</td>
+                    </tr>
+                </tbody>
+            </table>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myStream.emit(data)</code></span>
+        Sends data to all clients connected to the stream.
+        <blockquote>
+            <p><b><code>data</code></b> - <code>Any</code> - Can be anything, but keep in mind that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>new Wimp("#frame1").listen(name, fn)</code></span>
+        Connects to a stream.
+        <blockquote>
+            <p><b><code>name</code></b> - <code>String</code> - Corresponds to the name in <code>createStream(name...)</code></p>
+        </blockquote>
+        
+        <blockquote>
+            <p><b><code>fn(data)</code></b> - <code>Function</code> - Called whenever a new message is sent from the stream. Data is the...data.</p>
+        </blockquote>
+    </div>
+</div>
+
+
+<h4 id="static-properties-and-methods">Static properties and methods</h4>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>Wimp.init([selector])</code></span>
+        Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response)
+        <blockquote>
+            <p><b><code>selector</code></b> - <code>Function</code> - You can replace the default query selector by passing a new one. Defaults to <code>document.querySelectorAll.bind(document)</code>. Can be handy for working with Polymer/shadow DOM</p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>Wimp.registerTarget(name, target)</code></span>
+        Saves an iframe/popup with a name. Can be useful when using proxying. E.g. <code>Wimp.registerTarget("lovelyPopup", window.open(...))</code>, as this would be the only way to access the popup from outside of the window.
+        <blockquote>
+            <p><b><code>name</code></b> - <code>String</code> - Unique (within the window) identifier. The associated iframe/popup can then be accessed under this name.</p>
+        </blockquote>
+        <blockquote>
+            <p><b><code>target</code></b> - <code>Many</code> - See <code>new Wimp(...)</code>, as this target is the same</p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>Wimp.proxy</code></span>
+        Property. Defaults to <code>false</code>. When set to <code>true</code> will allow iframes and popups to use it as a proxy to talk to other iframes/popups within it's DOM.
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>Wimp.pendingRequest</code></span>
+        <code>Object</code>. List of pending requests for all instances.
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>Wimp.registeredTargets</code></span>
+        <code>Object</code>. List of registered targets.
+    </div>
+</div>
+
+
                 </div>
             </div>
         </div>

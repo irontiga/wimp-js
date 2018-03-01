@@ -13,11 +13,11 @@
             const w = new Wimp(window.parent);
             
             setTimeout(() => {
-                w.request("hello").then(response => {
+                w.request("hello", {data: "framekitgang"}).then(response => {
                     console.log(response);
                 })
                 
-                w.request("hello22", response => {
+                w.request("hello22", {data: "framekitgang22"}, response => {
                     console.log("YAY", response);
                 })
             },1000)
@@ -32,11 +32,11 @@
                 console.log("time");
                 wProxy = new Wimp("popup", window.parent);
                 console.log(wProxy);
-                wProxy.request("high", response => {
+                wProxy.request("high", {data: "framekitgang"}, response => {
                     console.log(response);
                 });
                 
-                wProxy.request("high").then(response => {
+                wProxy.request("high", {data: "framekitgang"}).then(response => {
                     console.log("PROM IS TOMOROW", response);
                 });
             }, 4000)
@@ -49,7 +49,7 @@
             
             setTimeout(() => {
                 proxyStreamListenWimp = new Wimp("popup", window.parent).listen("time", data => {
-                    console.log("It's " + data)
+                    console.log("It's " + data);
                 })
             }, 1000)
         </script>
