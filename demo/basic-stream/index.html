@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+
+    <body>
+
+        <h1 id="counterValue"></h1>
+        
+        <iframe id="frame1" src="frame1.html"></iframe>
+        
+        <script src="../../wimp.js"></script>
+
+        <script>
+            Wimp.init();
+            
+            counterValue = document.getElementById("counterValue");
+            
+            const counterWimp = new Wimp("#frame1")
+            
+            counterWimp.ready().then(() => {
+                counterWimp.listen("click", (count) => {
+                    counterValue.innerHTML = count;
+                })
+            })
+        </script>
+    </body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    
+    </head>
+    <body>
+        <iframe src="iframe1.html" id="frame1"></iframe>
+
+        <script src="wimp.js"></script>
+        <script>
+            Wimp.init(); // Adds an event listener and makes stuff start working!
+
+            const frame1 = new Wimp("#frame1"); // Initialze a new Wimp, which will be able to cumminicate with #frame1
+
+            // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
+            frame1.request("height").then(height => {
+                document.getElementByID("#frame1").height = height; // Duh
+            })
+        </script>
+    </body>
+</html>

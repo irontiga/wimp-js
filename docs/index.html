@@ -36,8 +36,10 @@ In this example we're going to have index.html fetch the height of an iframe via
 
     <script src="wimp.js"></script>
     <script>
+        Wimp.init(); // Adds an event listener and makes stuff start working!
+        
         const frame1 = new Wimp("#frame1"); // Initialze a new Wimp, which will be able to cumminicate with #frame1
-
+        
         // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
         frame1.request("height").then(height => {
             document.getElementByID("#frame1").height = height; // Duh
@@ -57,10 +59,18 @@ In this example we're going to have index.html fetch the height of an iframe via
         container.on("height", (data, res) => {
             res(document.body.scrollHeight);
         })
+        
+        Wimp.init(); // Doesn't matter where it goes, although best do it before any outgoing requests are made.
     </script>
 </body>
 {% endhighlight %}
 
+<h4>Basic stream</h4>
+Now we're going to build a simple counter. Our iframe will send a stream message out whenever a button is clicked.
+{% highlight html %}
+
+
+{% endhighlight %}
 <h4 id="api-docs">API docs</h4>
 
 <div class="card">
@@ -102,6 +112,16 @@ In this example we're going to have index.html fetch the height of an iframe via
         
         <blockquote>
             <p><b><code>proxy</code></b> - If included, requests etc. will be sent through the proxy and to the target within it's DOM. It's the same as target, however when proxying is enabled, target can not be a content window.</p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myWimp.ready(fn)</code></span>
+        Called when <code>Wimp.init()</code> has been called in all this Wimp instance's targets.
+        <blockquote>
+            <p><b><code>fn</code></b> - <code>Function</code> - Function called when all the targets are ready. Can also be omiited and then a promise will be returned, which will resolve when all the targets are ready.</p>
         </blockquote>
     </div>
 </div>

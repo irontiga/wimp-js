@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <script src="wimp.js"></script>
+        <script>
+            const container = new Wimp(window.parent); // Can also take a window object
+
+            // Listens for a "height" request. On that request it will pass both the data and a response function to your callback
+            container.on("height", (data, res) => {
+                res(document.body.scrollHeight);
+            })
+
+            Wimp.init(); // Doesn't matter where it goes, although best do it before any outgoing requests are made.
+        </script>
+    </body>
+</html>

@@ -95,8 +95,10 @@ In this example we're going to have index.html fetch the height of an iframe via
 
     <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
     <span class="nt">&lt;script&gt;</span>
+        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span> <span class="c1">// Adds an event listener and makes stuff start working!</span>
+        
         <span class="kd">const</span> <span class="nx">frame1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">);</span> <span class="c1">// Initialze a new Wimp, which will be able to cumminicate with #frame1</span>
-
+        
         <span class="c1">// A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.</span>
         <span class="nx">frame1</span><span class="p">.</span><span class="nx">request</span><span class="p">(</span><span class="s2">"height"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">height</span> <span class="o">=&gt;</span> <span class="p">{</span>
             <span class="nb">document</span><span class="p">.</span><span class="nx">getElementByID</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">).</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">height</span><span class="p">;</span> <span class="c1">// Duh</span>
@@ -114,8 +116,13 @@ In this example we're going to have index.html fetch the height of an iframe via
         <span class="nx">container</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
             <span class="nx">res</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="p">);</span>
         <span class="p">})</span>
+        
+        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span> <span class="c1">// Doesn't matter where it goes, although best do it before any outgoing requests are made.</span>
     <span class="nt">&lt;/script&gt;</span>
 <span class="nt">&lt;/body&gt;</span></code></pre></figure>
+
+<h4>Basic stream</h4>
+Now we're going to build a simple counter. Our iframe will send a stream message out whenever a button is clicked.
 
 <h4 id="api-docs">API docs</h4>
 
@@ -158,6 +165,16 @@ In this example we're going to have index.html fetch the height of an iframe via
         
         <blockquote>
             <p><b><code>proxy</code></b> - If included, requests etc. will be sent through the proxy and to the target within it's DOM. It's the same as target, however when proxying is enabled, target can not be a content window.</p>
+        </blockquote>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-content">
+        <span class="card-title"><code>myWimp.ready(fn)</code></span>
+        Called when <code>Wimp.init()</code> has been called in all this Wimp instance's targets.
+        <blockquote>
+            <p><b><code>fn</code></b> - <code>Function</code> - Function called when all the targets are ready. Can also be omiited and then a promise will be returned, which will resolve when all the targets are ready.</p>
         </blockquote>
     </div>
 </div>

@@ -10,7 +10,6 @@
     // Outgoing HTTP requests
     const pendingRequests = {}; // "hgad683gfy8q" : function(data, event) <-- event.data already parsed
     
-
     const proxiedStreams = {}; // { name: [window, window, window] // All the targets}
     
     // Streams ~ websockets .. do we need websockets? Nope we dont't :D Wimp("balancePage").on("balance-update", data => { ... })
@@ -61,6 +60,19 @@
             };
             
             switch(data.type){
+                case "readyCheck":
+                    // Obviously ready, so just change the message and send it back
+                    data.type = "readyResponse";
+                    Wimp._postMessage({window: event.source, origin: event.origin}, data);
+                    break;
+                case "readyResponse":
+                    wimps.some(w => {
+                        if(w.pendingReady[data.requestID]){
+                            delete w.pendingReady[data.requestID];
+                            return 1;
+                        }
+                    });
+                    break;
                 case "response":
                     // Response to a request
                     // Try avoid errors please
@@ -76,15 +88,15 @@
                     // All the "on" things
                     
                     wimps.forEach(w => {
-                        for(const target of w.targets){
+                        w.targets.some(target => {
                             if(target.window == event.source){
                                 
                                 const res = data.expectResponse ? Wimp._responseFactory(event, data.requestID) : () => {};
                                 
                                 if(w.routes[data.request]){ w.routes[data.request](data.data, res) }
-                                break;
+                                return 1;
                             }
-                        }
+                        })
                     });
                     break;
                 case "proxy":
@@ -149,7 +161,7 @@
         }
         
         static registerTarget(name, element){
-            this.registeredTargets[name] = element;
+            registeredTargets[name] = Wimp._getTargetWindows(Wimp._targetsToArrayObject(element)[0]);
         }
         
         static _relay(event){
@@ -246,48 +258,6 @@
             }
             return targets
         }
-        
-        // frame could be an array, proxy can only be a string or an object
-        constructor(targets, proxy){
-            if(proxy && !proxyingEnabled){
-                throw "Proxying disabled. Enable it with `Wimp.proxy = true;`"
-            }
-            
-            wimps.push(this);
-            
-            // Incoming
-            this.routes = {};
-            this.streams = {};
-            this.listeners = {}; // Listeners for streams
-            // Store targets
-            this.targets = [];
-            
-            // Make it a gorgeous object if it isn't already one
-            if(proxy && !proxy.selector){
-                proxy = {
-                    selector: proxy,
-                    origin: "*"
-                }
-            }
-            
-            targets = Wimp._targetsToArrayObject(targets);
-            
-            // Store original selector(if it is one)
-            this.selectors = [];
-            targets.forEach(target => {
-                if(typeof target.selector == "string"){
-                    this.selectors.push(target);
-                }
-            })
-            
-            // Store 
-            this.proxy = proxy ? Wimp._getTargetWindows(proxy)[0] : false;
-            
-            targets.forEach((target) => {
-                this.targets.push(...Wimp._getTargetWindows(target));
-            })
-        }
-        
         // Takes a string or element and returns an array of elements or throws an error
         static _getTargetWindows(target){
             if(typeof target.selector == "string"){
@@ -310,10 +280,11 @@
                 else {
                     if(target.selector in registeredTargets){
                         // Return an array...
-                        return [{
-                            window: registeredTargets[target.selector],
-                            origin: target.origin
-                        }];
+                        return registeredTargets[target.selector]
+//                        return [{
+//                            window: registeredTargets[target.selector],
+//                            origin: target.origin
+//                        }];
                     }
                     // Otherwise assume it's a css selector
                     const nodes = Array.prototype.slice.call(DOMSelector(target.selector));
@@ -339,6 +310,74 @@
                 // Dom element
             }
         }
+        
+        // frame could be an array, proxy can only be a string or an object
+        constructor(targets, proxy){
+            if(proxy && !proxyingEnabled){
+                throw "Proxying disabled. Enable it with `Wimp.proxy = true;`"
+            }
+            
+            wimps.push(this);
+            
+            // Incoming
+            this.routes = {};
+            this.streams = {};
+            this.listeners = {}; // Listeners for streams
+            this.pendingReady = {};
+            this.readyFunction = () => {}; // Default ready function. Does absolutely nothing :)
+            // Store targets
+            this.targets = [];
+            
+            // Make it a gorgeous object if it isn't already one
+            if(proxy && !proxy.selector){
+                proxy = {
+                    selector: proxy,
+                    origin: "*"
+                }
+            }
+            
+            targets = Wimp._targetsToArrayObject(targets);
+            
+            // Store original selector(if it is one)
+            this.selectors = [];
+            targets.forEach(target => {
+                if(typeof target.selector == "string"){
+                    this.selectors.push(target);
+                }
+            })
+            
+            // Store 
+            this.proxy = proxy ? Wimp._getTargetWindows(proxy)[0] : false;
+            
+            targets.forEach((target) => {
+                // Store the target
+                this.targets.push(...Wimp._getTargetWindows(target));
+            })
+            
+            this.targets.forEach(target => {
+                // And wait for everyone to be ready
+                const pendingID = Math.random().toString(36).substr(2, 10);
+                this.pendingReady[pendingID] = target;
+                // Now keep on checking for the ready...and because setInterval is dumb
+                const readyCheck = () => {
+                    console.log(this.pendingReady);
+                    if(Object.keys(this.pendingReady).length == 0){
+                        this.readyFunction();
+                        return;
+                    }
+                    Object.keys(this.pendingReady).forEach(pending => {
+                        Wimp._postMessage(this.pendingReady[pending], {
+                            type: "readyCheck",
+                            requestID: pending
+                        });
+                    })
+                    setTimeout(() => readyCheck(), 10);
+                }
+
+                readyCheck();
+            })
+        }
+        
         
         // Like a HTTP request, it's once off - fetches/does something
         // data stored in options.data
@@ -507,9 +546,10 @@
             // Call cb when a handshake has occured (aka the target frame is loaded)...might be unnecessary....test window.parent.document.readyState or frame.contentWindow.document.readyState ...altho frame should = contentWindow
             if(!cb){
                 return new Promise(resolve => {
-                    //
+                    this.readyFunction = resolve;
                 })
             }
+            this.readyFunction = cb;
         }
     }
     
