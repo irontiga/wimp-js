@@ -1,6 +1,5 @@
 # Wimp-js
 ## The super easy window.postMessage wrapper.
+(Wi)ndow.(p)ost(M)essage => wipm => wimp
 
-WIP. Supports both promises and callbacks.
-
-`bower install --save wimp`
+See website for docs
