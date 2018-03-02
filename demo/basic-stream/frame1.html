@@ -15,7 +15,7 @@
             
             let counter = 0;
             
-            buttonStream = new Wimp(window.parent).createStream("click", (data, res) => {
+            const buttonStream = new Wimp(window.parent).createStream("click", (data, res) => {
                 res(counter);
             })
             

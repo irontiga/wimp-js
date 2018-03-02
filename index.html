@@ -16,21 +16,25 @@ headings:
 <h2>Wimp.js</h2>
 <h6>Making window.postMessage practical and pleasurable</h6>
 <br>
+<div id="introduction" class="section scrollspy">
+    <h4>Introduction</h4>
+    Wimp's goal is to make window.postMessage easy and viable. It's inspired by both HTTP and websockets, making it familiar (hopefully) to web developers. 
+</div>
 
-<h4 id="introduction">Introduction</h4>
-Wimp's goal is to make window.postMessage easy and viable. It's inspired by both HTTP and websockets, making it familiar (hopefully) to web developers. 
-
-<h4 id="installation">Installation</h4>
-Just include a script tag in your html
+<div  id="installation" class="section scrollspy">
+    <h4>Installation</h4>
+    Just include a script tag in your html
 
 {% highlight html %}
 <script src="wimp.js"></script>
 {% endhighlight %}
 
-<h4 id="basic-example">Basic example</h4>
-In this example we're going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).
-<br>
-<b>index.html</b>
+</div>
+
+<div id="basic-example" class="section scrollspy">
+    <h4>Basic example</h4>
+    In this example we're going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).
+    <h5>index.html</h5>
 {% highlight html %}
 <body>
     <iframe src="iframe1.html" id="frame1"></iframe>
@@ -49,7 +53,9 @@ In this example we're going to have index.html fetch the height of an iframe via
     </script>
 </body>
 {% endhighlight %}
-<b>frame1.html</b>
+    
+    <h5>frame1.html</h5>
+    
 {% highlight html %}
 <body>
     ...
@@ -61,16 +67,23 @@ In this example we're going to have index.html fetch the height of an iframe via
         container.on("height", (req, res) => {
             res(document.body.scrollHeight)
         })
-        
+
         Wimp.init() // Init should be called AFTER any routes are defined
     </script>
 </body>
 {% endhighlight %}
-<a href="demo/basic/" target="_blank">See this example live</a>
+    
+    <a href="demo/basic/" target="_blank">See this example live</a>
 
-<h4 id="basic-stream-example">Basic stream example</h4>
-Now we're going to build a simple counter. Our iframe will send a stream message out whenever a button is clicked.
-<strong>index.html</strong>
+</div>
+
+<div id="basic-stream-example" class="section scrollspy">
+    
+    <h4>Basic stream example</h4>
+    Now we're going to build a simple counter. Our iframe will send a stream message out whenever a button is clicked.
+    <br>
+    <h5>index.html</h5>
+    
 {% highlight html %}
 <body>
 
@@ -81,21 +94,23 @@ Now we're going to build a simple counter. Our iframe will send a stream message
     <script src="wimp.js"></script>
 
     <script>
-        Wimp.init(); // Init is called BEFORE any outgoing wimp requests or listeners
+        Wimp.init() // Init is called BEFORE any outgoing wimp requests or listeners
 
-        counterValue = document.getElementById("counterValue");
+        const counterValue = document.getElementById("counterValue")
 
         const counterWimp = new Wimp("#frame1")
 
         counterWimp.ready().then(() => {
             counterWimp.listen("click", (count) => {
-                counterValue.innerHTML = count;
+                counterValue.innerHTML = count
             })
         })
     </script>
 </body>
 {% endhighlight %}
-<strong>frame1.html</strong>
+    
+    <h5>frame1.html</h5>
+    
 {% highlight html %}
 <body>
 
@@ -106,24 +121,27 @@ Now we're going to build a simple counter. Our iframe will send a stream message
     <script>
         let counter = 0;
 
-        buttonStream = new Wimp(window.parent).createStream("click", (data, res) => {
-            res(counter);
+        const buttonStream = new Wimp(window.parent).createStream("click", (data, res) => {
+            res(counter)
         })
-        
-        Wimp.init(); // Note that init is called AFTER the stream has been defined
 
-        const counterButton = document.getElementById("counter");
+        Wimp.init() // Note that init is called AFTER the stream has been defined
+
+        const counterButton = document.getElementById("counter")
 
         counterButton.onclick = () => {
-            counter++;
-            buttonStream.emit(counter);
+            counter++
+            buttonStream.emit(counter)
         }
-        
+
     </script>
 </body>
 {% endhighlight %}
-<a href="demo/basic-stream/" target="_blank">See this example live</a>
-<h4 id="api-docs">API docs</h4>
+    
+    <a href="demo/basic-stream/" target="_blank">See this example live</a>
+
+</div>
+<h4 id="api-docs" class="scrollspy">API docs</h4>
 
 <div class="card">
     <div class="card-content">
@@ -264,8 +282,8 @@ Now we're going to build a simple counter. Our iframe will send a stream message
         Adds a target to the instance of Wimp. Useful for example when trying to communicate with all frames AND a popup window.
 {% highlight javascript %}
 
-myWimp = new Wimp("*); // All iframes
-myWimp.addTarget(window.open("popup.html")); // Add the popup window to the instance
+myWimp = new Wimp("*") // All iframes
+myWimp.addTarget(window.open("popup.html")) // Add the popup window to the instance
 
 {% endhighlight %}
         <blockquote>
@@ -274,118 +292,124 @@ myWimp.addTarget(window.open("popup.html")); // Add the popup window to the inst
     </div>
 </div>
 
-<h4 id="streams">Streams</h4>
+<div  id="streams" class="section scrollspy">
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myStream = new Wimp("*").createStream(name [, options], joinFn)</code></span>
-        Creates a new stream, much like a websocket.</code>
-        <blockquote>
-            <p><b><code>name</code></b> - <code>String</code> - Name of the stream (kinda like the URL) for client to connect to.</p>
-        </blockquote>
+    <h4>Streams</h4>
 
-        <blockquote>
-            <p><b><code>options</code></b> - <code>Object</code> Optional options object. Specifies options for the stream.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>Name</th>
-                        <td>Name can be omitted and specified in options instead. Has higher priority.</td>
-                    </tr>
-                    <tr>
-                        <th>...</th>
-                        <td><code>Function</code>...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>joinFn(data, res)</code></b> - <code>Function</code> Called upon every new client connection</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>data</th>
-                        <td>Client can send data along with the connection request. This would be it</td>
-                    </tr>
-                    <tr>
-                        <th><code>res(response)</code></th>
-                        <td><code>Function</code> - Sends a response back to the client. This response will be treated exactly the same as <code>myStream.emit(response)</code>, but will only be sent to this particular client</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myStream = new Wimp("*").createStream(name [, options], joinFn)</code></span>
+            Creates a new stream, much like a websocket.
+            <blockquote>
+                <p><b><code>name</code></b> - <code>String</code> - Name of the stream (kinda like the URL) for client to connect to.</p>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>options</code></b> - <code>Object</code> Optional options object. Specifies options for the stream.</p>
+                <table class="tabbed">
+                    <tbody>
+                        <tr>
+                            <th>Name</th>
+                            <td>Name can be omitted and specified in options instead. Has higher priority.</td>
+                        </tr>
+                        <tr>
+                            <th>...</th>
+                            <td><code>Function</code>...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>joinFn(data, res)</code></b> - <code>Function</code> Called upon every new client connection</p>
+                <table class="tabbed">
+                    <tbody>
+                        <tr>
+                            <th>data</th>
+                            <td>Client can send data along with the connection request. This would be it</td>
+                        </tr>
+                        <tr>
+                            <th><code>res(response)</code></th>
+                            <td><code>Function</code> - Sends a response back to the client. This response will be treated exactly the same as <code>myStream.emit(response)</code>, but will only be sent to this particular client</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </blockquote>
+        </div>
     </div>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myStream.emit(data)</code></span>
+            Sends data to all clients connected to the stream.
+            <blockquote>
+                <p><b><code>data</code></b> - <code>Any</code> - Can be anything, but keep in mind that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></p>
+            </blockquote>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>new Wimp("#frame1").listen(name, fn)</code></span>
+            Connects to a stream.
+            <blockquote>
+                <p><b><code>name</code></b> - <code>String</code> - Corresponds to the name in <code>createStream(name...)</code></p>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>fn(data)</code></b> - <code>Function</code> - Called whenever a new message is sent from the stream. Data is the...data.</p>
+            </blockquote>
+        </div>
+    </div>
+
 </div>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myStream.emit(data)</code></span>
-        Sends data to all clients connected to the stream.
-        <blockquote>
-            <p><b><code>data</code></b> - <code>Any</code> - Can be anything, but keep in mind that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></p>
-        </blockquote>
+<div id="static-properties-and-methods" class="section scrollspy">
+
+    <h4>Static properties and methods</h4>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>Wimp.init([selector])</code></span>
+            Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response). Should be called after any routes or streams are defined, but before any outgoing requests are made.
+            <blockquote>
+                <p><b><code>selector</code></b> - <code>Function</code> - You can replace the default query selector by passing a new one. Defaults to <code>document.querySelectorAll.bind(document)</code>. Can be handy for working with Polymer/shadow DOM</p>
+            </blockquote>
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>new Wimp("#frame1").listen(name, fn)</code></span>
-        Connects to a stream.
-        <blockquote>
-            <p><b><code>name</code></b> - <code>String</code> - Corresponds to the name in <code>createStream(name...)</code></p>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>fn(data)</code></b> - <code>Function</code> - Called whenever a new message is sent from the stream. Data is the...data.</p>
-        </blockquote>
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>Wimp.registerTarget(name, target)</code></span>
+            Saves an iframe/popup with a name. Can be useful when using proxying. E.g. <code>Wimp.registerTarget("lovelyPopup", window.open(...))</code>, as this would be the only way to access the popup from outside of the window.
+            <blockquote>
+                <p><b><code>name</code></b> - <code>String</code> - Unique (within the window) identifier. The associated iframe/popup can then be accessed under this name.</p>
+            </blockquote>
+            <blockquote>
+                <p><b><code>target</code></b> - <code>Many</code> - See <code>new Wimp(...)</code>, as this target is the same</p>
+            </blockquote>
+        </div>
     </div>
-</div>
 
-
-<h4 id="static-properties-and-methods">Static properties and methods</h4>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>Wimp.init([selector])</code></span>
-        Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response). Should be called after any routes or streams are defined, but before any outgoing requests are made.
-        <blockquote>
-            <p><b><code>selector</code></b> - <code>Function</code> - You can replace the default query selector by passing a new one. Defaults to <code>document.querySelectorAll.bind(document)</code>. Can be handy for working with Polymer/shadow DOM</p>
-        </blockquote>
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>Wimp.proxy</code></span>
+            Property. Defaults to <code>false</code>. When set to <code>true</code> will allow iframes and popups to use it as a proxy to talk to other iframes/popups within it's DOM.
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>Wimp.registerTarget(name, target)</code></span>
-        Saves an iframe/popup with a name. Can be useful when using proxying. E.g. <code>Wimp.registerTarget("lovelyPopup", window.open(...))</code>, as this would be the only way to access the popup from outside of the window.
-        <blockquote>
-            <p><b><code>name</code></b> - <code>String</code> - Unique (within the window) identifier. The associated iframe/popup can then be accessed under this name.</p>
-        </blockquote>
-        <blockquote>
-            <p><b><code>target</code></b> - <code>Many</code> - See <code>new Wimp(...)</code>, as this target is the same</p>
-        </blockquote>
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>Wimp.pendingRequest</code></span>
+            <code>Object</code>. List of pending requests for all instances.
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>Wimp.proxy</code></span>
-        Property. Defaults to <code>false</code>. When set to <code>true</code> will allow iframes and popups to use it as a proxy to talk to other iframes/popups within it's DOM.
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>Wimp.pendingRequest</code></span>
-        <code>Object</code>. List of pending requests for all instances.
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>Wimp.registeredTargets</code></span>
-        <code>Object</code>. List of registered targets.
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>Wimp.registeredTargets</code></span>
+            <code>Object</code>. List of registered targets.
+        </div>
     </div>
 </div>
 

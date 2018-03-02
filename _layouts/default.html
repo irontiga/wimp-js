@@ -56,21 +56,23 @@
     <body>
         <div class="container">
             <div class="row">
-                <div class="col hide-on-small-only m4 l3">
-                    <div id="sidebar">
-                        <ul class="section table-of-contents">
-                            {% for heading in page.headings %}
-                            <li><a href="#{{ heading | slugify }}">{{ heading }}</a></li>
-                            {% endfor %}
-                        </ul>
-                        {% include downloadButton.html %}
-                    </div>
-                </div>
-                <div class="col s12 m8 l9">
+                <div class="col s12 m9 l10">
                     <div class="hide-on-med-and-up">
                         {% include downloadButton.html %}
                     </div>
                     {{content}}
+                </div>
+                <div class="col hide-on-small-only m3 l2">
+                    <div id="sidebar">
+                        <ul id="toc" class="section table-of-contents">
+                            {% for heading in page.headings %}
+                            <li><a href="#{{ heading | slugify }}">{{ heading }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        <div style="padding-left:16px;">
+                            {% include downloadButton.html %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,7 +87,7 @@
         
         <script>
             $(document).ready(function(){
-                $('.table-of-contents').scrollSpy();
+                $('#toc').scrollSpy();
                 $('#sidebar').pushpin();
             });
 
