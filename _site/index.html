@@ -56,7 +56,9 @@
                             
                             <li><a href="#introduction">Introduction</a></li>
                             
-                            <li><a href="#basic-usage">Basic usage</a></li>
+                            <li><a href="#basic-example">Basic example</a></li>
+                            
+                            <li><a href="#basic-stream-example">Basic stream example</a></li>
                             
                             <li><a href="#api-docs">API docs</a></li>
                             
@@ -86,7 +88,7 @@ Just include a script tag in your html
 
 <figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span></code></pre></figure>
 
-<h4 id="basic-usage">Basic usage</h4>
+<h4 id="basic-example">Basic example</h4>
 In this example we're going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).
 <br>
 <b>index.html</b>
@@ -95,13 +97,14 @@ In this example we're going to have index.html fetch the height of an iframe via
 
     <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
     <span class="nt">&lt;script&gt;</span>
-        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span> <span class="c1">// Adds an event listener and makes stuff start working!</span>
-        
-        <span class="kd">const</span> <span class="nx">frame1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">);</span> <span class="c1">// Initialze a new Wimp, which will be able to cumminicate with #frame1</span>
-        
-        <span class="c1">// A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.</span>
-        <span class="nx">frame1</span><span class="p">.</span><span class="nx">request</span><span class="p">(</span><span class="s2">"height"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">height</span> <span class="o">=&gt;</span> <span class="p">{</span>
-            <span class="nb">document</span><span class="p">.</span><span class="nx">getElementByID</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">).</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">height</span><span class="p">;</span> <span class="c1">// Duh</span>
+        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">()</span> <span class="c1">// Listens for messages. Needs to be called BEFORE the outgoing request is made (or else you can risk missing the response message)</span>
+
+        <span class="kd">const</span> <span class="nx">frame1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">)</span> <span class="c1">// Initialze a new Wimp, which will be able to cumminicate with #frame1</span>
+
+        <span class="nx">frame1</span><span class="p">.</span><span class="nx">ready</span><span class="p">().</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="c1">// Wait for the ready promise to fulfill, in order to assure that the target is ready to start receiving requests</span>
+            <span class="nx">frame1</span><span class="p">.</span><span class="nx">request</span><span class="p">(</span><span class="s2">"height"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">req</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"frame1"</span><span class="p">).</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">data</span> <span class="c1">// The data sent by frame1 is stored under req.data</span>
+            <span class="p">})</span>
         <span class="p">})</span>
     <span class="nt">&lt;/script&gt;</span>
 <span class="nt">&lt;/body&gt;</span></code></pre></figure>
@@ -110,20 +113,69 @@ In this example we're going to have index.html fetch the height of an iframe via
     ...
     <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
     <span class="nt">&lt;script&gt;</span>
-        <span class="kd">const</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">parent</span><span class="p">);</span> <span class="c1">// Can also take a window object</span>
+        <span class="kd">const</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">parent</span><span class="p">)</span> <span class="c1">// Can also take a window object</span>
 
-        <span class="c1">// Listens for a "height" request. On that request it will pass both the data and a response function to your callback</span>
-        <span class="nx">container</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
-            <span class="nx">res</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="p">);</span>
+        <span class="c1">// Defines a "height" route. On a "height" request it will pass both the request and a response function to your callback.</span>
+        <span class="nx">container</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nx">res</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="p">)</span>
         <span class="p">})</span>
         
-        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span> <span class="c1">// Doesn't matter where it goes, although best do it before any outgoing requests are made.</span>
+        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">()</span> <span class="c1">// Init should be called AFTER any routes are defined</span>
     <span class="nt">&lt;/script&gt;</span>
 <span class="nt">&lt;/body&gt;</span></code></pre></figure>
+<a href="demo/basic/" target="_blank">See this example live</a>
 
-<h4>Basic stream</h4>
+<h4 id="basic-stream-example">Basic stream example</h4>
 Now we're going to build a simple counter. Our iframe will send a stream message out whenever a button is clicked.
+<strong>index.html</strong>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;body&gt;</span>
 
+    <span class="nt">&lt;h1</span> <span class="na">id=</span><span class="s">"counterValue"</span><span class="nt">&gt;&lt;/h1&gt;</span>
+
+    <span class="nt">&lt;iframe</span> <span class="na">id=</span><span class="s">"frame1"</span> <span class="na">src=</span><span class="s">"frame1.html"</span><span class="nt">&gt;&lt;/iframe&gt;</span>
+
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+
+    <span class="nt">&lt;script&gt;</span>
+        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span> <span class="c1">// Init is called BEFORE any outgoing wimp requests or listeners</span>
+
+        <span class="nx">counterValue</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"counterValue"</span><span class="p">);</span>
+
+        <span class="kd">const</span> <span class="nx">counterWimp</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="s2">"#frame1"</span><span class="p">)</span>
+
+        <span class="nx">counterWimp</span><span class="p">.</span><span class="nx">ready</span><span class="p">().</span><span class="nx">then</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nx">counterWimp</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="s2">"click"</span><span class="p">,</span> <span class="p">(</span><span class="nx">count</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="nx">counterValue</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">count</span><span class="p">;</span>
+            <span class="p">})</span>
+        <span class="p">})</span>
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span></code></pre></figure>
+<strong>frame1.html</strong>
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;body&gt;</span>
+
+    <span class="nt">&lt;button</span> <span class="na">id=</span><span class="s">"counter"</span><span class="nt">&gt;</span>Count + 1<span class="nt">&lt;/button&gt;</span>
+
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"wimp.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+
+    <span class="nt">&lt;script&gt;</span>
+        <span class="kd">let</span> <span class="nx">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+        <span class="nx">buttonStream</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Wimp</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">parent</span><span class="p">).</span><span class="nx">createStream</span><span class="p">(</span><span class="s2">"click"</span><span class="p">,</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nx">res</span><span class="p">(</span><span class="nx">counter</span><span class="p">);</span>
+        <span class="p">})</span>
+        
+        <span class="nx">Wimp</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span> <span class="c1">// Note that init is called AFTER the stream has been defined</span>
+
+        <span class="kd">const</span> <span class="nx">counterButton</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"counter"</span><span class="p">);</span>
+
+        <span class="nx">counterButton</span><span class="p">.</span><span class="nx">onclick</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="nx">counter</span><span class="o">++</span><span class="p">;</span>
+            <span class="nx">buttonStream</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="nx">counter</span><span class="p">);</span>
+        <span class="p">}</span>
+        
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span></code></pre></figure>
+<a href="/demo/basic-stream/" target="_blank">See this example live</a>
 <h4 id="api-docs">API docs</h4>
 
 <div class="card">
@@ -181,7 +233,7 @@ Now we're going to build a simple counter. Our iframe will send a stream message
 
 <div class="card">
     <div class="card-content">
-        <span class="card-title"><code>myWimp.request(request [, options], callback)</code></span>
+        <span class="card-title"><code>myWimp.request(request [, options, callback])</code></span>
         Sends a request, much like a HTTP GET/POST request
         <blockquote>
             <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
@@ -208,7 +260,27 @@ Now we're going to build a simple counter. Our iframe will send a stream message
         </blockquote>
 
         <blockquote>
-            <p><b><code>callback(data)</code></b> - <code>Function</code> Called when the request completes. `data` is the response which the request receives</p>
+            <p><b><code>callback(response)</code></b> - <code>Function</code> Optional - called when the request completes. `data` is the response which the request receives. If omitted a promise will be returned instead. <code>response</code> is an object containing the following. <code>.then((response) => {})</code> is identical.</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>success</th>
+                        <td><code>Boolean</code> - <code>true</code> if the request was successful, <code>false</code> if not</td>
+                    </tr>
+                    <tr>
+                        <th>data</th>
+                        <td><code>Any</code> - The received data from the request. This is exactly what is supplied by <code>res(someData)</code> from the route (<code>myWimp.on(...)</code>)</td>
+                    </tr>
+                    <tr>
+                        <th>requestID</th>
+                        <td>The request's ID. Can be treated as unique</td>
+                    </tr>
+                    <tr>
+                        <th>error.message</th>
+                        <td>If success is false an error message will be specified here.</td>
+                    </tr>
+                </tbody>
+            </table>
         </blockquote>
     </div>
 </div>
@@ -231,7 +303,7 @@ Now we're going to build a simple counter. Our iframe will send a stream message
                     </tr>
                     <tr>
                         <th><code>res(response), res.error(message)</code></th>
-                        <td><code>Function</code> - Response function which sends `response` back to the client. Or <code>res.error</code> in case of an error.</td>
+                        <td><code>Function</code> - Response function which sends <code>response</code> back to the client. Use <code>res.error(message)</code> in case of an error, with message being the error message.</td>
                     </tr>
                 </tbody>
             </table>
@@ -325,7 +397,7 @@ myWimp.addTarget(window.open("</span><span class="nx">popup</span><span class="p
 <div class="card">
     <div class="card-content">
         <span class="card-title"><code>Wimp.init([selector])</code></span>
-        Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response)
+        Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response). Should be called after any routes or streams are defined, but before any outgoing requests are made.
         <blockquote>
             <p><b><code>selector</code></b> - <code>Function</code> - You can replace the default query selector by passing a new one. Defaults to <code>document.querySelectorAll.bind(document)</code>. Can be handy for working with Polymer/shadow DOM</p>
         </blockquote>

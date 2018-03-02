@@ -178,7 +178,7 @@
             delete options.target;
             
             targets.forEach(target => {
-                const requestID = Math.random().toString(36).substr(2, 10);
+                const requestID = Math.random().toString(36).substr(2, 12);
                 requestIDs.push(requestID);
             });
             
@@ -356,11 +356,10 @@
             
             this.targets.forEach(target => {
                 // And wait for everyone to be ready
-                const pendingID = Math.random().toString(36).substr(2, 10);
+                const pendingID = Math.random().toString(36).substr(2, 12);
                 this.pendingReady[pendingID] = target;
                 // Now keep on checking for the ready...and because setInterval is dumb
                 const readyCheck = () => {
-                    console.log(this.pendingReady);
                     if(Object.keys(this.pendingReady).length == 0){
                         this.readyFunction();
                         return;
@@ -409,7 +408,7 @@
                 // Send the request to each of the targets with different request IDs...if promise return array of promises (which can be wrapped in a Promise.all()), otherwise call the callback with each response
                 this.targets.forEach(target => {
                     
-                    options.requestID = Math.random().toString(36).substr(2, 10);
+                    options.requestID = Math.random().toString(36).substr(2, 12);
                     options.type = "request";
                     
                     if(!options.expectResponse){
@@ -435,7 +434,7 @@
                 
             } else {
                 // First request/response fetchs an array of request IDs, as sometimes a request can have multiple targets
-                const initID = Math.random().toString(36).substr(2, 10);
+                const initID = Math.random().toString(36).substr(2, 12);
                 options.requestID = initID;
                 options.type = "proxy";
                 options.targets = this.selectors;

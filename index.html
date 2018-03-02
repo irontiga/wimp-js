@@ -4,7 +4,8 @@ title: James
 layout: default
 headings:
   - Introduction
-  - Basic usage
+  - Basic example
+  - Basic stream example
   - API docs
   - Streams
   - Static properties and methods
@@ -26,7 +27,7 @@ Just include a script tag in your html
 <script src="wimp.js"></script>
 {% endhighlight %}
 
-<h4 id="basic-usage">Basic usage</h4>
+<h4 id="basic-example">Basic example</h4>
 In this example we're going to have index.html fetch the height of an iframe via a request. Note that this is an example, and far from the best way to do it (you could do it better with or without Wimp).
 <br>
 <b>index.html</b>
@@ -36,13 +37,14 @@ In this example we're going to have index.html fetch the height of an iframe via
 
     <script src="wimp.js"></script>
     <script>
-        Wimp.init(); // Adds an event listener and makes stuff start working!
-        
-        const frame1 = new Wimp("#frame1"); // Initialze a new Wimp, which will be able to cumminicate with #frame1
-        
-        // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
-        frame1.request("height").then(height => {
-            document.getElementByID("#frame1").height = height; // Duh
+        Wimp.init() // Listens for messages. Needs to be called BEFORE the outgoing request is made (or else you can risk missing the response message)
+
+        const frame1 = new Wimp("#frame1") // Initialze a new Wimp, which will be able to cumminicate with #frame1
+
+        frame1.ready().then(() => { // Wait for the ready promise to fulfill, in order to assure that the target is ready to start receiving requests
+            frame1.request("height").then(req => {
+                document.getElementById("frame1").height = req.data // The data sent by frame1 is stored under req.data
+            })
         })
     </script>
 </body>
@@ -53,24 +55,74 @@ In this example we're going to have index.html fetch the height of an iframe via
     ...
     <script src="wimp.js"></script>
     <script>
-        const container = new Wimp(window.parent); // Can also take a window object
+        const container = new Wimp(window.parent) // Can also take a window object
 
-        // Listens for a "height" request. On that request it will pass both the data and a response function to your callback
-        container.on("height", (data, res) => {
-            res(document.body.scrollHeight);
+        // Defines a "height" route. On a "height" request it will pass both the request and a response function to your callback.
+        container.on("height", (req, res) => {
+            res(document.body.scrollHeight)
         })
         
-        Wimp.init(); // Doesn't matter where it goes, although best do it before any outgoing requests are made.
+        Wimp.init() // Init should be called AFTER any routes are defined
     </script>
 </body>
 {% endhighlight %}
+<a href="demo/basic/" target="_blank">See this example live</a>
 
-<h4>Basic stream</h4>
+<h4 id="basic-stream-example">Basic stream example</h4>
 Now we're going to build a simple counter. Our iframe will send a stream message out whenever a button is clicked.
+<strong>index.html</strong>
 {% highlight html %}
+<body>
 
+    <h1 id="counterValue"></h1>
 
+    <iframe id="frame1" src="frame1.html"></iframe>
+
+    <script src="wimp.js"></script>
+
+    <script>
+        Wimp.init(); // Init is called BEFORE any outgoing wimp requests or listeners
+
+        counterValue = document.getElementById("counterValue");
+
+        const counterWimp = new Wimp("#frame1")
+
+        counterWimp.ready().then(() => {
+            counterWimp.listen("click", (count) => {
+                counterValue.innerHTML = count;
+            })
+        })
+    </script>
+</body>
 {% endhighlight %}
+<strong>frame1.html</strong>
+{% highlight html %}
+<body>
+
+    <button id="counter">Count + 1</button>
+
+    <script src="wimp.js"></script>
+
+    <script>
+        let counter = 0;
+
+        buttonStream = new Wimp(window.parent).createStream("click", (data, res) => {
+            res(counter);
+        })
+        
+        Wimp.init(); // Note that init is called AFTER the stream has been defined
+
+        const counterButton = document.getElementById("counter");
+
+        counterButton.onclick = () => {
+            counter++;
+            buttonStream.emit(counter);
+        }
+        
+    </script>
+</body>
+{% endhighlight %}
+<a href="/demo/basic-stream/" target="_blank">See this example live</a>
 <h4 id="api-docs">API docs</h4>
 
 <div class="card">
@@ -128,7 +180,7 @@ Now we're going to build a simple counter. Our iframe will send a stream message
 
 <div class="card">
     <div class="card-content">
-        <span class="card-title"><code>myWimp.request(request [, options], callback)</code></span>
+        <span class="card-title"><code>myWimp.request(request [, options, callback])</code></span>
         Sends a request, much like a HTTP GET/POST request
         <blockquote>
             <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
@@ -155,7 +207,27 @@ Now we're going to build a simple counter. Our iframe will send a stream message
         </blockquote>
 
         <blockquote>
-            <p><b><code>callback(data)</code></b> - <code>Function</code> Called when the request completes. `data` is the response which the request receives</p>
+            <p><b><code>callback(response)</code></b> - <code>Function</code> Optional - called when the request completes. `data` is the response which the request receives. If omitted a promise will be returned instead. <code>response</code> is an object containing the following. <code>.then((response) => {})</code> is identical.</p>
+            <table class="tabbed">
+                <tbody>
+                    <tr>
+                        <th>success</th>
+                        <td><code>Boolean</code> - <code>true</code> if the request was successful, <code>false</code> if not</td>
+                    </tr>
+                    <tr>
+                        <th>data</th>
+                        <td><code>Any</code> - The received data from the request. This is exactly what is supplied by <code>res(someData)</code> from the route (<code>myWimp.on(...)</code>)</td>
+                    </tr>
+                    <tr>
+                        <th>requestID</th>
+                        <td>The request's ID. Can be treated as unique</td>
+                    </tr>
+                    <tr>
+                        <th>error.message</th>
+                        <td>If success is false an error message will be specified here.</td>
+                    </tr>
+                </tbody>
+            </table>
         </blockquote>
     </div>
 </div>
@@ -178,7 +250,7 @@ Now we're going to build a simple counter. Our iframe will send a stream message
                     </tr>
                     <tr>
                         <th><code>res(response), res.error(message)</code></th>
-                        <td><code>Function</code> - Response function which sends `response` back to the client. Or <code>res.error</code> in case of an error.</td>
+                        <td><code>Function</code> - Response function which sends <code>response</code> back to the client. Use <code>res.error(message)</code> in case of an error, with message being the error message.</td>
                     </tr>
                 </tbody>
             </table>
@@ -276,7 +348,7 @@ myWimp.addTarget(window.open("popup.html")); // Add the popup window to the inst
 <div class="card">
     <div class="card-content">
         <span class="card-title"><code>Wimp.init([selector])</code></span>
-        Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response)
+        Needs to be called in order to start listening for messages. (e.g. responses for requests and stream response). Should be called after any routes or streams are defined, but before any outgoing requests are made.
         <blockquote>
             <p><b><code>selector</code></b> - <code>Function</code> - You can replace the default query selector by passing a new one. Defaults to <code>document.querySelectorAll.bind(document)</code>. Can be handy for working with Polymer/shadow DOM</p>
         </blockquote>
