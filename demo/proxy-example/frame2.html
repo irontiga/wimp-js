@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+
+    <body>
+        
+        <h1 id="counterValue"></h1>
+        
+        <script src="../../src/wimp.js"></script>
+
+        <script>
+            Wimp.init();
+
+            const counterValue = document.getElementById("counterValue");
+
+            const counterWimp = new Wimp("#frame1", window.parent);
+
+            counterWimp.ready().then(() => {
+                counterWimp.listen("click", (count) => {
+                    counterValue.innerHTML = count;
+                })
+            })
+        </script>
+    </body>
+</html>

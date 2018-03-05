@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+
+    <body>
+        
+        <iframe id="frame1" src="frame1.html"></iframe>
+        
+        <iframe id="frame2" src="frame2.html"></iframe>
+        
+        <script src="../../src/wimp.js"></script>
+
+        <script>
+            Wimp.proxy = true // Allow frames to use index.html as a proxy
+
+            Wimp.init() // Still needed
+        </script>
+    </body>
+</html>

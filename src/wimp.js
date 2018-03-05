@@ -24,6 +24,8 @@
     
     const wimps = []; // Instances of Wimp within the window. Loop through it for all requests
     
+    const pendingProxyTargets = {} // {randID : [id, id, id]}
+    
 
     class Wimp {
         
@@ -65,13 +67,82 @@
                     data.type = "readyResponse";
                     Wimp._postMessage({window: event.source, origin: event.origin}, data);
                     break;
+                case "proxyReadyCheck":
+                    if(pendingProxyTargets[data.requestID]){
+                        return; // Request has already been received
+                    }
+                    
+                    data.type = "readyResponse";
+                    Wimp._postMessage({window: event.source, origin: event.origin}, data);
+                    
+                    // Now check all the targets. Responds "targetsReady"
+                    if(!proxyingEnabled){
+                        throw "Proxying disabled. Enable it with `Wimp.proxy = true;`";
+                    }
+                    
+                    pendingProxyTargets[data.requestID] = {
+                        targets: [],
+                        pending: {},
+                        window: event.source,
+                        origin: event.origin
+                    };
+                    
+                    const proxyTargets = pendingProxyTargets[data.requestID].targets;
+                    const pendingReady = pendingProxyTargets[data.requestID].pending;
+                    
+                    data.targets.forEach((target) => {
+                        proxyTargets.push(...Wimp._getTargetWindows(target));
+                    });
+                    
+                    proxyTargets.forEach(target => {
+                        // And wait for everyone to be ready
+                        const pendingID = Math.random().toString(36).substr(2, 12);
+                        pendingReady[pendingID] = target;
+                        // Now keep on checking for the ready...and because setInterval is dumb
+                        const readyCheck = () => {
+                            if(Object.keys(pendingReady).length == 0){
+                                data.type = "targetsReady";
+                                Wimp._postMessage({window: event.source, origin: event.origin}, data);
+                                return;
+                            }
+                            Object.keys(pendingReady).forEach(pending => {
+                                Wimp._postMessage(pendingReady[pending], {
+                                    type: "readyCheck",
+                                    requestID: pending
+                                });
+                            })
+                            setTimeout(() => readyCheck(), 10);
+                        }
+
+                        readyCheck();
+                    });
+                    
+                    
+                    break;
                 case "readyResponse":
                     wimps.some(w => {
                         if(w.pendingReady[data.requestID]){
                             delete w.pendingReady[data.requestID];
                             return 1;
                         }
+                        if(w.pendingReadyProxy == data.requestID){
+                            w.proxyReady = true;
+                            return 1;
+                        }
                     });
+                    Object.keys(pendingProxyTargets).forEach(id => {
+                        if(pendingProxyTargets[id].pending[data.requestID]){
+                            delete pendingProxyTargets[id].pending[data.requestID];
+                        }
+                    })
+                    break;
+                case "targetsReady":
+                    wimps.some(w => {
+                        if(w.pendingReadyProxy == data.requestID){
+                            w.isReady = true;
+                            w.readyFunction();
+                        }
+                    })
                     break;
                 case "response":
                     // Response to a request
@@ -100,6 +171,9 @@
                     });
                     break;
                 case "proxy":
+                    if(!proxyingEnabled){
+                        throw "Proxying disabled. Enable it with `Wimp.proxy = true;`"
+                    }
                     // Relay a proxied request/response
                     Wimp._relay(parsedEvent);
                     break;
@@ -129,6 +203,9 @@
                     
                     break;
                 case "joinProxyStream":
+                    if(!proxyingEnabled){
+                        throw "Proxying disabled. Enable it with `Wimp.proxy = true;`"
+                    }
                     // There should only be one, altho I guess it's possible for there to be multiple...
                     //const targets = Wimp._getTargetWindows(data.target);
                     const targets = [];
@@ -141,7 +218,6 @@
                     delete data.target;
                     
                     targets.forEach(target => {
-                        console.log(data, target);
                         Wimp._postMessage(target, data);
                     })
                     if(proxiedStreams[name]){
@@ -161,7 +237,8 @@
         }
         
         static registerTarget(name, element){
-            registeredTargets[name] = Wimp._getTargetWindows(Wimp._targetsToArrayObject(element)[0]);
+            const target = Wimp._getTargetWindows(Wimp._targetsToArrayObject(element)[0]);
+            registeredTargets[name] = target;
         }
         
         static _relay(event){
@@ -313,17 +390,16 @@
         
         // frame could be an array, proxy can only be a string or an object
         constructor(targets, proxy){
-            if(proxy && !proxyingEnabled){
-                throw "Proxying disabled. Enable it with `Wimp.proxy = true;`"
-            }
-            
             wimps.push(this);
             
             // Incoming
+            this.isReady = false;
             this.routes = {};
             this.streams = {};
             this.listeners = {}; // Listeners for streams
             this.pendingReady = {};
+            this.proxyReady = false;
+            this.proxyTargetsReady = false;
             this.readyFunction = () => {}; // Default ready function. Does absolutely nothing :)
             // Store targets
             this.targets = [];
@@ -352,29 +428,47 @@
             targets.forEach((target) => {
                 // Store the target
                 this.targets.push(...Wimp._getTargetWindows(target));
-            })
+            });
             
-            this.targets.forEach(target => {
-                // And wait for everyone to be ready
-                const pendingID = Math.random().toString(36).substr(2, 12);
-                this.pendingReady[pendingID] = target;
-                // Now keep on checking for the ready...and because setInterval is dumb
+            if(this.proxy){
+                this.pendingReadyProxy = Math.random().toString(36).substr(2, 12);
                 const readyCheck = () => {
-                    if(Object.keys(this.pendingReady).length == 0){
-                        this.readyFunction();
+                    Wimp._postMessage(this.proxy, {
+                        type: "proxyReadyCheck",
+                        targets: this.selectors,
+                        requestID: this.pendingReadyProxy
+                    });
+                    // The proxy is ready...but we are still waiting for the target(s)
+                    if(this.proxyReady) {
                         return;
                     }
-                    Object.keys(this.pendingReady).forEach(pending => {
-                        Wimp._postMessage(this.pendingReady[pending], {
-                            type: "readyCheck",
-                            requestID: pending
-                        });
-                    })
                     setTimeout(() => readyCheck(), 10);
                 }
-
                 readyCheck();
-            })
+            } else {
+                this.targets.forEach(target => {
+                    // And wait for everyone to be ready
+                    const pendingID = Math.random().toString(36).substr(2, 12);
+                    this.pendingReady[pendingID] = target;
+                    // Now keep on checking for the ready...and because setInterval is dumb
+                    const readyCheck = () => {
+                        if(Object.keys(this.pendingReady).length == 0){
+                            this.isReady = true;
+                            this.readyFunction();
+                            return;
+                        }
+                        Object.keys(this.pendingReady).forEach(pending => {
+                            Wimp._postMessage(this.pendingReady[pending], {
+                                type: "readyCheck",
+                                requestID: pending
+                            });
+                        })
+                        setTimeout(() => readyCheck(), 10);
+                    }
+
+                    readyCheck();
+                });
+            }
         }
         
         
@@ -543,12 +637,21 @@
         
         ready(cb){
             // Call cb when a handshake has occured (aka the target frame is loaded)...might be unnecessary....test window.parent.document.readyState or frame.contentWindow.document.readyState ...altho frame should = contentWindow
+            // Check that ready has not already been fired
+            if(this.isReady){
+                if(!cb){
+                    return Promise.resolve();
+                }
+                return cb();
+            }
+            
             if(!cb){
                 return new Promise(resolve => {
                     this.readyFunction = resolve;
                 })
             }
             this.readyFunction = cb;
+            
         }
     }
     

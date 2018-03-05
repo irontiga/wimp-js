@@ -1,11 +1,12 @@
 ---
 # Hello
-title: James
+title: Wimp.js
 layout: default
 headings:
   - Introduction
   - Basic example
   - Basic stream example
+  - Proxy example
   - API docs
   - Streams
   - Static properties and methods
@@ -141,156 +142,212 @@ headings:
     <a href="demo/basic-stream/" target="_blank">See this example live</a>
 
 </div>
-<h4 id="api-docs" class="scrollspy">API docs</h4>
 
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>const myWimp = new Wimp(target [, proxy])</code></span>
-        Creates a new Wimp instance for cross frame communication.
-        <blockquote>
-            <p><b><code>target</code></b> - The iframe/window we're communicating with. Can be any of the following, or an array of any number of the following.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>Query selector</th>
-                        <td><code>String</code></td>
-                        <td>e.g. <code>"#frame1"</code></td>
-                    </tr>
-                    <tr>
-                        <th>Content window</th>
-                        <td><code>Object</code></td>
-                        <td>e.g. <code>window.parent</code> or <code>document.getElementByID("#frame1").contentWindow</code>. Can not be used in conjuction with <code>proxy</code></td>
-                    </tr>
-                    <tr>
-                        <th><code>"*"</code> - Wildcard</th>
-                        <td><code>String</code></td>
-                        <td><code>Uses `window.frames`. Note that new iframes will not automatically be added.</code></td>
-                    </tr>
-                    <tr>
-                        <th>Registered target</th>
-                        <td><code>String</code></td>
-                        <td>A preregistered iframe's name. See **LINK ME UP BOIIIII**</td>
-                    </tr>
-                    <tr>
-                        <th><code>Object</code></th>
-                        <td><code>Object</code></td>
-                        <td>Can be an object like <code>{selector: "#frame1", origin: "mydomain.com"}</code>, where selector can be any of the above.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
+
+<div id="proxy-example">
+    <h4>Proxy example</h4>
+    With proxying iframes can commuicate with each other through their parent...or any other medium. In this example we'll build a counter again, but this time instead of showing the counter value in index.html, we will show it in frame2.html. Note that frame1 remains unchanged from above.
+    <h5>index.html</h5>
+    
+{% highlight html %}
+<body>
+
+    <iframe id="frame1" src="frame1.html"></iframe>
+    
+    <iframe id="frame2" src="frame2.html"></iframe>
+
+    <script src="wimp.js"></script>
+
+    <script>
+        Wimp.proxyingEnabled = true // Allow frames to use index.html as a proxy
         
-        <blockquote>
-            <p><b><code>proxy</code></b> - If included, requests etc. will be sent through the proxy and to the target within it's DOM. It's the same as target, however when proxying is enabled, target can not be a content window.</p>
-        </blockquote>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myWimp.ready(fn)</code></span>
-        Called when <code>Wimp.init()</code> has been called in all this Wimp instance's targets.
-        <blockquote>
-            <p><b><code>fn</code></b> - <code>Function</code> - Function called when all the targets are ready. Can also be omiited and then a promise will be returned, which will resolve when all the targets are ready.</p>
-        </blockquote>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myWimp.request(request [, options, callback])</code></span>
-        Sends a request, much like a HTTP GET/POST request
-        <blockquote>
-            <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>options</code></b> - <code>Object</code> Specifies options for the request. Can be omitted.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>Request</th>
-                        <td>Request can also be omitted and defined within options</td>
-                    </tr>
-                    <tr>
-                        <th>expectResponse</th>
-                        <td><code>Boolean</code> - Default: <code>true</code>. If <code>false</code> callback will not be called. Makes the request one way.</td>
-                    </tr>
-                    <tr>
-                        <th>data</th>
-                        <td>Data to be sent with the request. Can be anything, but note that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
-
-        <blockquote>
-            <p><b><code>callback(response)</code></b> - <code>Function</code> Optional - called when the request completes. `data` is the response which the request receives. If omitted a promise will be returned instead. <code>response</code> is an object containing the following. <code>.then((response) => {})</code> is identical.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>success</th>
-                        <td><code>Boolean</code> - <code>true</code> if the request was successful, <code>false</code> if not</td>
-                    </tr>
-                    <tr>
-                        <th>data</th>
-                        <td><code>Any</code> - The received data from the request. This is exactly what is supplied by <code>res(someData)</code> from the route (<code>myWimp.on(...)</code>)</td>
-                    </tr>
-                    <tr>
-                        <th>requestID</th>
-                        <td>The request's ID. Can be treated as unique</td>
-                    </tr>
-                    <tr>
-                        <th>error.message</th>
-                        <td>If success is false an error message will be specified here.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myWimp.on(request, fn)</code></span>
-        Much like a server route. Receives a request with data(passed to fn), and replies (again with a function passed to fn).
-        <blockquote>
-            <p><b><code>request</code></b> - <code>String</code> - corresponds to the <code>request</code> coming from myWimp.request. </p>
-        </blockquote>
-        
-        <blockquote>
-            <p><b><code>fn(data, res)</code></b> - <code>Function</code> Called whenever a new request comes in.</p>
-            <table class="tabbed">
-                <tbody>
-                    <tr>
-                        <th>data</th>
-                        <td>Data that came with the request. Already parsed</td>
-                    </tr>
-                    <tr>
-                        <th><code>res(response), res.error(message)</code></th>
-                        <td><code>Function</code> - Response function which sends <code>response</code> back to the client. Use <code>res.error(message)</code> in case of an error, with message being the error message.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </blockquote>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-content">
-        <span class="card-title"><code>myWimp.addTarget(target)</code></span>
-        Adds a target to the instance of Wimp. Useful for example when trying to communicate with all frames AND a popup window.
-{% highlight javascript %}
-
-myWimp = new Wimp("*") // All iframes
-myWimp.addTarget(window.open("popup.html")) // Add the popup window to the instance
-
+        Wimp.init() // Still needed
+    </script>
+</body>
 {% endhighlight %}
-        <blockquote>
-            <p><b><code>Target</code></b> - <code>Many</code> - Same as <code>new Wimp(target)</code>.</p>
-        </blockquote>
+    
+    <h5>frame2.html</h5>
+{% highlight html %}
+<body>
+
+    <h1 id="counterValue"></h1>
+
+    <script src="../../src/wimp.js"></script>
+
+    <script>
+        Wimp.init();
+
+        const counterValue = document.getElementById("counterValue");
+
+        const counterWimp = new Wimp("#frame1", window.parent);
+
+        counterWimp.ready().then(() => {
+            counterWimp.listen("click", (count) => {
+                counterValue.innerHTML = count;
+            })
+        })
+    </script>
+</body>
+{% endhighlight %}
+    <a href="demo/proxy-example/" target="_blank">See this example live</a>
+    
+</div>
+
+
+
+<div id="api-docs" class="section scrollspy">
+    <h4>API docs</h4>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>const myWimp = new Wimp(target [, proxy])</code></span>
+            Creates a new Wimp instance for cross frame communication.
+            <blockquote>
+                <p><b><code>target</code></b> - The iframe/window we're communicating with. Can be any of the following, or an array of any number of the following.</p>
+                <table class="tabbed">
+                    <tbody>
+                        <tr>
+                            <th>Query selector</th>
+                            <td><code>String</code></td>
+                            <td>e.g. <code>"#frame1"</code></td>
+                        </tr>
+                        <tr>
+                            <th>Content window</th>
+                            <td><code>Object</code></td>
+                            <td>e.g. <code>window.parent</code> or <code>document.getElementByID("#frame1").contentWindow</code>. Can not be used in conjuction with <code>proxy</code></td>
+                        </tr>
+                        <tr>
+                            <th><code>"*"</code> - Wildcard</th>
+                            <td><code>String</code></td>
+                            <td><code>Uses `window.frames`. Note that new iframes will not automatically be added.</code></td>
+                        </tr>
+                        <tr>
+                            <th>Registered target</th>
+                            <td><code>String</code></td>
+                            <td>A preregistered iframe's name. See **LINK ME UP BOIIIII**</td>
+                        </tr>
+                        <tr>
+                            <th><code>Object</code></th>
+                            <td><code>Object</code></td>
+                            <td>Can be an object like <code>{selector: "#frame1", origin: "mydomain.com"}</code>, where selector can be any of the above.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>proxy</code></b> - If included, requests etc. will be sent through the proxy and to the target within it's DOM. It's the same as target, however when proxying is enabled, target can not be a content window.</p>
+            </blockquote>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myWimp.ready(fn)</code></span>
+            Called when <code>Wimp.init()</code> has been called in all this Wimp instance's targets.
+            <blockquote>
+                <p><b><code>fn</code></b> - <code>Function</code> - Function called when all the targets are ready. Can also be omiited and then a promise will be returned, which will resolve when all the targets are ready.</p>
+            </blockquote>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myWimp.request(request [, options, callback])</code></span>
+            Sends a request, much like a HTTP GET/POST request
+            <blockquote>
+                <p><b><code>request</code></b> - <code>String</code> - The request string you're trying to make. Think of it as a URL.</p>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>options</code></b> - <code>Object</code> Specifies options for the request. Can be omitted.</p>
+                <table class="tabbed">
+                    <tbody>
+                        <tr>
+                            <th>Request</th>
+                            <td>Request can also be omitted and defined within options</td>
+                        </tr>
+                        <tr>
+                            <th>expectResponse</th>
+                            <td><code>Boolean</code> - Default: <code>true</code>. If <code>false</code> callback will not be called. Makes the request one way.</td>
+                        </tr>
+                        <tr>
+                            <th>data</th>
+                            <td>Data to be sent with the request. Can be anything, but note that it will go through <code>JSON.stringify</code> and then <code>JSON.parse</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>callback(response)</code></b> - <code>Function</code> Optional - called when the request completes. `data` is the response which the request receives. If omitted a promise will be returned instead. <code>response</code> is an object containing the following. <code>.then((response) => {})</code> is identical.</p>
+                <table class="tabbed">
+                    <tbody>
+                        <tr>
+                            <th>success</th>
+                            <td><code>Boolean</code> - <code>true</code> if the request was successful, <code>false</code> if not</td>
+                        </tr>
+                        <tr>
+                            <th>data</th>
+                            <td><code>Any</code> - The received data from the request. This is exactly what is supplied by <code>res(someData)</code> from the route (<code>myWimp.on(...)</code>)</td>
+                        </tr>
+                        <tr>
+                            <th>requestID</th>
+                            <td>The request's ID. Can be treated as unique</td>
+                        </tr>
+                        <tr>
+                            <th>error.message</th>
+                            <td>If success is false an error message will be specified here.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </blockquote>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myWimp.on(request, fn)</code></span>
+            Much like a server route. Receives a request with data(passed to fn), and replies (again with a function passed to fn).
+            <blockquote>
+                <p><b><code>request</code></b> - <code>String</code> - corresponds to the <code>request</code> coming from myWimp.request. </p>
+            </blockquote>
+
+            <blockquote>
+                <p><b><code>fn(data, res)</code></b> - <code>Function</code> Called whenever a new request comes in.</p>
+                <table class="tabbed">
+                    <tbody>
+                        <tr>
+                            <th>data</th>
+                            <td>Data that came with the request. Already parsed</td>
+                        </tr>
+                        <tr>
+                            <th><code>res(response), res.error(message)</code></th>
+                            <td><code>Function</code> - Response function which sends <code>response</code> back to the client. Use <code>res.error(message)</code> in case of an error, with message being the error message.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </blockquote>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myWimp.addTarget(target)</code></span>
+            Adds a target to the instance of Wimp. Useful for example when trying to communicate with all frames AND a popup window.
+            {% highlight javascript %}
+
+            myWimp = new Wimp("*") // All iframes
+            myWimp.addTarget(window.open("popup.html")) // Add the popup window to the instance
+
+            {% endhighlight %}
+            <blockquote>
+                <p><b><code>Target</code></b> - <code>Many</code> - Same as <code>new Wimp(target)</code>.</p>
+            </blockquote>
+        </div>
     </div>
 </div>
+
 
 <div  id="streams" class="section scrollspy">
 
