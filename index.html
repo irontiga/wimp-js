@@ -335,10 +335,12 @@ headings:
         <div class="card-content">
             <span class="card-title"><code>myWimp.addTarget(target)</code></span>
             Adds a target to the instance of Wimp. Useful for example when trying to communicate with all frames AND a popup window.
-            {% highlight javascript %}
+{% highlight javascript %}
+
 myWimp = new Wimp("*") // All iframes
 myWimp.addTarget(window.open("popup.html")) // Add the popup window to the instance
-            {% endhighlight %}
+
+{% endhighlight %}
             <blockquote>
                 <p><b><code>Target</code></b> - <code>Many</code> - Same as <code>new Wimp(target)</code>.</p>
             </blockquote>
