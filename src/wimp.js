@@ -95,7 +95,6 @@
                     data.targets.forEach((target) => {
                         proxyTargets.push(...Wimp._getTargetWindows(target));
                     });
-                    
                     proxyTargets.forEach(target => {
                         if(target in readyFrames){
                             return;
@@ -245,8 +244,11 @@
         }
         
         static registerTarget(name, element){
-            const target = Wimp._getTargetWindows(Wimp._targetsToArrayObject(element)[0]);
-            registeredTargets[name] = target;
+            const targets = [];
+            Wimp._targetsToArrayObject(element).forEach((target) => {
+                targets.push(...Wimp._getTargetWindows(target));
+            });
+            registeredTargets[name] = targets;
         }
         
         static _relay(event){
@@ -362,14 +364,14 @@
                 }
                 
                 // id/name for a target
-                else {
+                else { 
                     if(target.selector in registeredTargets){
                         // Return an array...
-                        return registeredTargets[target.selector]
-//                        return [{
-//                            window: registeredTargets[target.selector],
-//                            origin: target.origin
-//                        }];
+                        return registeredTargets[target.selector];
+//                      return [{
+//                          window: registeredTargets[target.selector],
+//                          origin: target.origin
+//                      }];
                     }
                     // Otherwise assume it's a css selector
                     const nodes = Array.prototype.slice.call(DOMSelector(target.selector));
@@ -461,7 +463,6 @@
                     }
                     // And wait for everyone to be ready
                     const pendingID = Math.random().toString(36).substr(2, 12);
-                    this.pendingReady[pendingID] = target;
                     // Now keep on checking for the ready...and because setInterval is dumb
                     const readyCheck = () => {
                         if(Object.keys(this.pendingReady).length == 0){
