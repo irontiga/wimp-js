@@ -666,23 +666,5 @@
             
         }
     }
-    
-//    window.Wimp = (target, proxy) => {
-//        return new Wimp(target, proxy);
-//    }
-//    
-//    window.Wimp.listen = Wimp.listen;
-//    
-//    window.Wimp.routes = Wimp.routes;
     window.Wimp = Wimp;
 }());
-
-
-
-
-// ==================
-
-//let target
-//target = Wimp("parent/child")
-//target = Wimp("*")
-//target = Wimp("parent/child", "proxy")
