@@ -26,6 +26,8 @@
     
     const pendingProxyTargets = {} // {randID : [id, id, id]}
     
+    const readyFrames = []; // Stores every frame that is ready. Prevents duplicates, especially when proxying
+    
 
     class Wimp {
         
@@ -63,7 +65,7 @@
             
             switch(data.type){
                 case "readyCheck":
-                    // Obviously ready, so just change the message and send it back
+                    // Obviously ready(as we're receiving a mesage), so just change the type and send it back
                     data.type = "readyResponse";
                     Wimp._postMessage({window: event.source, origin: event.origin}, data);
                     break;
@@ -95,6 +97,9 @@
                     });
                     
                     proxyTargets.forEach(target => {
+                        if(target in readyFrames){
+                            return;
+                        }
                         // And wait for everyone to be ready
                         const pendingID = Math.random().toString(36).substr(2, 12);
                         pendingReady[pendingID] = target;
@@ -120,6 +125,9 @@
                     
                     break;
                 case "readyResponse":
+                    if(!(event.source in readyFrames)){
+                        readyFrames.push(event.source);
+                    }
                     wimps.some(w => {
                         if(w.pendingReady[data.requestID]){
                             delete w.pendingReady[data.requestID];
@@ -447,6 +455,10 @@
                 readyCheck();
             } else {
                 this.targets.forEach(target => {
+                    if(target in readyFrames){
+                        // Well then we've already checked that it's ready, so it is.
+                        return;
+                    }
                     // And wait for everyone to be ready
                     const pendingID = Math.random().toString(36).substr(2, 12);
                     this.pendingReady[pendingID] = target;
