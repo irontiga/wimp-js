@@ -1,0 +1,20 @@
+<html>
+    <head>
+    
+    </head>
+    
+    <body>
+        <script src="wimp.js"></script>
+        <script>
+            Wimp.init();
+
+            const w = new Wimp(window.parent);
+            
+            w.ready().then(() => {
+                w.listen("balance", (data) => {
+                    console.log("Listened for balance of " + data);
+                })
+            })
+        </script>
+    </body>
+</html>

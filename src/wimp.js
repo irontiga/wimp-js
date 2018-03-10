@@ -623,6 +623,7 @@
             }
             
         }
+        
         // const myDad = new Wimp(window.parent).listen("balance", update => { })
         listen(name, fn){
             if(this.proxy){
@@ -643,9 +644,23 @@
         }
         
         addTarget(targets){
-            // So that we can add window.open popups to "*" selector
+            // So that we can add window.open popups to "*" selector etc.
             targets = Wimp._targetsToArrayObject(targets);
+            targets.forEach(target => {
+                if(typeof target.selector == "string"){
+                    this.selectors.push(target);
+                }
+            })
             this.targets.push(...Wimp._getTargetWindows(targets));
+        }
+        
+        requery(){
+            this.targets = []; // Delete the onld targers
+            console.log(this.selectors);
+            this.selectors.forEach((target) => {
+                // Store the target
+                this.targets.push(...Wimp._getTargetWindows(target));
+            });
         }
         
         ready(cb){
@@ -665,6 +680,10 @@
             }
             this.readyFunction = cb;
             
+        }
+        
+        destroy(){
+            wimps.splice(wimps.indexOf(this), 1)
         }
     }
     window.Wimp = Wimp;
