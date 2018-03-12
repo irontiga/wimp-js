@@ -27,7 +27,7 @@ headings:
     Just include a script tag in your html
 
 {% highlight html %}
-<script src="wimp.js"></script>
+<script src="wimp.min.js"></script>
 {% endhighlight %}
 
 </div>
@@ -40,7 +40,7 @@ headings:
 <body>
     <iframe src="iframe1.html" id="frame1"></iframe>
 
-    <script src="wimp.js"></script>
+    <script src="wimp.min.js"></script>
     <script>
         Wimp.init() // Listens for messages. Needs to be called BEFORE the outgoing request is made (or else you can risk missing the response message)
 
@@ -60,7 +60,7 @@ headings:
 {% highlight html %}
 <body>
     ...
-    <script src="wimp.js"></script>
+    <script src="wimp.min.js"></script>
     <script>
         const container = new Wimp(window.parent) // Can also take a window object
 
@@ -92,7 +92,7 @@ headings:
 
     <iframe id="frame1" src="frame1.html"></iframe>
 
-    <script src="wimp.js"></script>
+    <script src="wimp.min.js"></script>
 
     <script>
         Wimp.init() // Init is called BEFORE any outgoing wimp requests or listeners
@@ -117,7 +117,7 @@ headings:
 
     <button id="counter">Count + 1</button>
 
-    <script src="wimp.js"></script>
+    <script src="wimp.min.js"></script>
 
     <script>
         let counter = 0;
@@ -156,7 +156,7 @@ headings:
     
     <iframe id="frame2" src="frame2.html"></iframe>
 
-    <script src="wimp.js"></script>
+    <script src="wimp.min.js"></script>
 
     <script>
         Wimp.proxyingEnabled = true // Allow frames to use index.html as a proxy
@@ -172,7 +172,7 @@ headings:
 
     <h1 id="counterValue"></h1>
 
-    <script src="../../src/wimp.js"></script>
+    <script src="../../src/wimp.min.js"></script>
 
     <script>
         Wimp.init();
