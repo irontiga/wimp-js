@@ -17,7 +17,8 @@
 
             const counterWimp = new Wimp("#frame1", window.parent);
 
-            counterWimp.ready().then(() => {
+            counterWimp.ready(() => {
+                console.log("Ready")
                 counterWimp.listen("click", (count) => {
                     counterValue.innerHTML = count;
                 })

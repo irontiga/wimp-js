@@ -117,12 +117,26 @@
                             })
                             setTimeout(() => readyCheck(), 10);
                         }
-
                         readyCheck();
                     });
                     
+                    break;
+                    
+                case "proxyReadyCheckReset":
+                    const framesToRemove = [];
+                    
+                    data.targets.forEach((target) => {
+                        framesToRemove.push(...Wimp._getTargetWindows(target));
+                    });
+                    
+                    framesToRemove.forEach(target => {
+                        if(readyFrames.indexOf(target.window) !== -1){
+                            readyFrames.splice(readyFrames.indexOf(target.window), 1);
+                        }
+                    })
                     
                     break;
+                    
                 case "readyResponse":
                     if(!readyFrames.includes(event.source)){
                         readyFrames.push(event.source)
@@ -404,7 +418,6 @@
             wimps.push(this);
             
             // Incoming
-            this.isReady = false;
             this.routes = {};
             this.streams = {};
             this.listeners = {}; // Listeners for streams
@@ -440,6 +453,27 @@
                 // Store the target
                 this.targets.push(...Wimp._getTargetWindows(target));
             });
+            this.readyCheck(false);
+        }
+        
+        readyCheck(reset){
+            this.isReady = false;
+            
+            if(reset){
+                this.targets.forEach(target => {
+                    if(readyFrames.indexOf(target.window) !== -1){
+                        readyFrames.splice(readyFrames.indexOf(target.window), 1);
+                    }
+                })
+                
+                if(this.proxy){
+                    Wimp._postMessage(this.proxy, {
+                        type: "proxyReadyCheckReset",
+                        targets: this.selectors
+                        // No request ID, no response expected
+                    });
+                }
+            }
             
             if(this.proxy){
                 this.pendingReadyProxy = Math.random().toString(36).substr(2, 12);
