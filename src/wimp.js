@@ -328,7 +328,7 @@
         }
         
         static _targetsToArrayObject(targets){
-            if(typeof targets != "array"){
+            if(!Array.isArray(targets)){
                 targets = [targets];
             }
             // Correct formatting
@@ -364,7 +364,7 @@
                 }
                 
                 // id/name for a target
-                else { 
+                else {
                     if(target.selector in registeredTargets){
                         // Return an array...
                         return registeredTargets[target.selector];
