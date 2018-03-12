@@ -96,7 +96,7 @@
                         proxyTargets.push(...Wimp._getTargetWindows(target));
                     });
                     proxyTargets.forEach(target => {
-                        if(target in readyFrames){
+                        if(readyFrames.includes(target.window)){
                             return;
                         }
                         // And wait for everyone to be ready
@@ -124,9 +124,8 @@
                     
                     break;
                 case "readyResponse":
-                    if(!(event.source in readyFrames)){
-                        
-                        readyFrames.push(event.source);
+                    if(!readyFrames.includes(event.source)){
+                        readyFrames.push(event.source)
                     }
                     wimps.some(w => {
                         if(w.pendingReady[data.requestID]){
@@ -459,8 +458,7 @@
                 readyCheck();
             } else {
                 this.targets.forEach(target => {
-                    if(target.window in readyFrames){
-                        // Well then we've already checked that it's ready, so it is.
+                    if(readyFrames.includes(target.window)){
                         return;
                     }
                     // And wait for everyone to be ready
@@ -658,8 +656,7 @@
         }
         
         requery(){
-            this.targets = []; // Delete the onld targers
-            console.log(this.selectors);
+            this.targets = []; // Delete the old targers
             this.selectors.forEach((target) => {
                 // Store the target
                 this.targets.push(...Wimp._getTargetWindows(target));
