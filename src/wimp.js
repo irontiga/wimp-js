@@ -333,7 +333,7 @@
             }
             // Correct formatting
             for(let i=0;i<targets.length;i++){
-                if(!targets[i].selector){
+                if(targets[i].postMessage || !targets[i].selector){
                     targets[i] = {
                         selector: targets[i],
                         origin: "*"
