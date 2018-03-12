@@ -322,6 +322,7 @@
                 Wimp._postMessage({window: event.source, origin: event.origin}, options);
             }
             res.error = message => {
+                message = message || "An error occured";
                 Wimp.error({window: event.source, origin: event.origin}, message, requestID)
             }
             return res;
