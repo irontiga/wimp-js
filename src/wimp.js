@@ -169,6 +169,7 @@
                     // Response to a request
                     // Try avoid errors please
                     if(pendingRequests[data.requestID]){
+                        data.success = data.success == "true";
                         pendingRequests[data.requestID](data) // , parsedEvent);
                         delete pendingRequests[data.requestID];
                     } else {
