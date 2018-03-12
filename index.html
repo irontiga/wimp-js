@@ -353,6 +353,13 @@ myWimp.addTarget(window.open("popup.html")) // Add the popup window to the insta
             Requeries the targets. This will delete alll the targets, and requery all the selectors. So if you passed <code>window.parent</code> or anything other than a string selector as the target to the constructor, they will be deleted and NOT readded. You can add them again with <code>myWimp.addTarget(window.parent)</code> however.
         </div>
     </div>
+    
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myWimp.readyCheck(reset)</code></span>
+            Can be called to wait for targets to be ready again. <code>reset</code> should be set to true, otherwise it will use cache, resulting in an instant call of any ready callbacks (note that a promise can not fulfill twice).
+        </div>
+    </div>
 </div>
 
 
