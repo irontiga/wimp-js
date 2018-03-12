@@ -125,6 +125,7 @@
                     break;
                 case "readyResponse":
                     if(!(event.source in readyFrames)){
+                        
                         readyFrames.push(event.source);
                     }
                     wimps.some(w => {
@@ -458,12 +459,13 @@
                 readyCheck();
             } else {
                 this.targets.forEach(target => {
-                    if(target in readyFrames){
+                    if(target.window in readyFrames){
                         // Well then we've already checked that it's ready, so it is.
                         return;
                     }
                     // And wait for everyone to be ready
                     const pendingID = Math.random().toString(36).substr(2, 12);
+                    this.pendingReady[pendingID] = target;
                     // Now keep on checking for the ready...and because setInterval is dumb
                     const readyCheck = () => {
                         if(Object.keys(this.pendingReady).length == 0){
