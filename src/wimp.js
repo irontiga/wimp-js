@@ -103,25 +103,25 @@
                         const pendingID = Math.random().toString(36).substr(2, 12);
                         pendingReady[pendingID] = target;
                         // Now keep on checking for the ready...and because setInterval is dumb
-                        const readyCheck = () => {
-                            if(Object.keys(pendingReady).length == 0){
-                                data.type = "targetsReady";
-                                Wimp._postMessage({window: event.source, origin: event.origin}, data);
-                                return;
-                            }
-                            Object.keys(pendingReady).forEach(pending => {
-                                Wimp._postMessage(pendingReady[pending], {
-                                    type: "readyCheck",
-                                    requestID: pending
-                                });
-                            })
-                            setTimeout(() => readyCheck(), 10);
-                        }
-                        readyCheck();
                     });
 
-                    break;
+                    const readyCheck = () => {
+                        if(Object.keys(pendingReady).length == 0){
+                            data.type = "targetsReady";
+                            Wimp._postMessage({window: event.source, origin: event.origin}, data);
+                            return;
+                        }
+                        Object.keys(pendingReady).forEach(pending => {
+                            Wimp._postMessage(pendingReady[pending], {
+                                type: "readyCheck",
+                                requestID: pending
+                            });
+                        })
+                        setTimeout(() => readyCheck(), 10);
+                    }
+                    readyCheck();
 
+                    break;
                 case "proxyReadyCheckReset":
                     const framesToRemove = [];
 
@@ -480,6 +480,7 @@
                         targets: this.selectors
                         // No request ID, no response expected
                     });
+                    this.proxyReady = false;
                 }
             }
 
@@ -714,7 +715,7 @@
         ready(cb){
             // Call cb when a handshake has occured (aka the target frame is loaded)...might be unnecessary....test window.parent.document.readyState or frame.contentWindow.document.readyState ...altho frame should = contentWindow
             // Check that ready has not already been fired
-            if(this.isReady){
+            if(this.isReady || (this.proxy && this.proxyReady)){
                 if(!cb){
                     return Promise.resolve();
                 }
