@@ -360,6 +360,13 @@ myWimp.addTarget(window.open("popup.html")) // Add the popup window to the insta
             Can be called to wait for targets to be ready again. <code>reset</code> should be set to true, otherwise it will use cache, resulting in an instant call of any ready callbacks (note that a promise can not fulfill twice).
         </div>
     </div>
+    
+    <div class="card">
+        <div class="card-content">
+            <span class="card-title"><code>myWimp.hashSync()</code></span>
+            Will sync the url hash between two iframes. <code>myWimp.hashSync()</code> must be called on both frames' wimp instance.
+        </div>
+    </div>
 </div>
 
 

@@ -711,6 +711,22 @@
                 this.targets.push(...Wimp._getTargetWindows(target));
             });
         }
+        
+        hashSync(){
+            this.on("hashchange", (req, res) => {
+                window.location.hash = req.hash;
+            })
+
+            window.addEventListener("hashchange", (e) => {
+                console.log(e);
+                this.request("hashchange", {
+                    data: {
+                        hash: e.newURL.split("#")[1]
+                    },
+                    expectResponse: false
+                });
+            }, false);
+        }
 
         ready(cb){
             // Call cb when a handshake has occured (aka the target frame is loaded)...might be unnecessary....test window.parent.document.readyState or frame.contentWindow.document.readyState ...altho frame should = contentWindow
