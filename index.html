@@ -19,7 +19,7 @@ headings:
 <br>
 <div id="introduction" class="section scrollspy">
     <h4>Introduction</h4>
-    Wimp's goal is to make window.postMessage easy and viable. It's inspired by both HTTP and websockets, making it familiar (hopefully) to web developers. 
+    Wimp's goal is to make window.postMessage easy and viable. It's inspired by both HTTP and websockets, making it familiar (hopefully) to web developers. It's an es6 class, and supports both promises and callbacks.
 </div>
 
 <div  id="installation" class="section scrollspy">
@@ -197,7 +197,7 @@ headings:
 
 <div id="api-docs" class="section scrollspy">
     <h4>API docs</h4>
-
+    <br>
     <div class="card">
         <div class="card-content">
             <span class="card-title"><code>const myWimp = new Wimp(target [, proxy])</code></span>
@@ -367,6 +367,7 @@ myWimp.addTarget(window.open("popup.html")) // Add the popup window to the insta
 
     <h4>Streams</h4>
 
+    <br>
     <div class="card">
         <div class="card-content">
             <span class="card-title"><code>myStream = new Wimp("*").createStream(name [, options], joinFn)</code></span>
@@ -438,7 +439,7 @@ myWimp.addTarget(window.open("popup.html")) // Add the popup window to the insta
 <div id="static-properties-and-methods" class="section scrollspy">
 
     <h4>Static properties and methods</h4>
-
+    <br>
     <div class="card">
         <div class="card-content">
             <span class="card-title"><code>Wimp.init([selector])</code></span>
