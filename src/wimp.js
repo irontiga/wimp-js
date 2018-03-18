@@ -751,5 +751,11 @@
             wimps.splice(wimps.indexOf(this), 1)
         }
     }
-    window.Wimp = Wimp;
+    if (typeof module === 'object' && module.exports) {
+        // CommonJS
+        module.exports = Wimp;
+    } else {
+        // Browser global
+        window.Wimp = Wimp
+    }
 }());
