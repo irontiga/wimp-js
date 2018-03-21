@@ -718,10 +718,10 @@
             })
 
             window.addEventListener("hashchange", (e) => {
-                console.log(e);
+                const newHash = e.newURL.split("#", 2)[1] || ""
                 this.request("hashchange", {
                     data: {
-                        hash: e.newURL.split("#")[1]
+                        hash: newHash
                     },
                     expectResponse: false
                 });
