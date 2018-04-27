@@ -46,10 +46,13 @@ headings:
 
         const frame1 = new Wimp("#frame1") // Initialze a new Wimp, which will be able to cumminicate with #frame1
 
-        frame1.ready().then(() => { // Wait for the ready promise to fulfill, in order to assure that the target is ready to start receiving requests
-            frame1.request("height").then(req => {
-                document.getElementById("frame1").height = req.data // The data sent by frame1 is stored under req.data
-            })
+        frame1.ready()
+            .then(() => {
+            // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
+            return frame1.request("height")
+        })
+            .then(req => {
+            document.getElementById("frame1").height = req.data; // Duh
         })
     </script>
 </body>
@@ -177,15 +180,16 @@ headings:
     <script>
         Wimp.init();
 
-        const counterValue = document.getElementById("counterValue");
+        const counterValue = document.getElementById("counterValue")
 
-        const counterWimp = new Wimp("#frame1", window.parent);
+        const counterWimp = new Wimp("#frame1", window.parent)
 
-        counterWimp.ready().then(() => {
-            counterWimp.listen("click", (count) => {
-                counterValue.innerHTML = count;
+        counterWimp.ready()
+            .then(() => {
+                counterWimp.listen("click", (count) => {
+                    counterValue.innerHTML = count
+                })
             })
-        })
     </script>
 </body>
 {% endhighlight %}

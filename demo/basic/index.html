@@ -17,12 +17,14 @@
 
             const frame1 = new Wimp("#frame1"); // Initialze a new Wimp, which will be able to cumminicate with #frame1
 
-            frame1.ready().then(() => {
-                // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
-                frame1.request("height").then(req => {
+            frame1.ready()
+                .then(() => {
+                    // A request sends a...request. This is much like making a HTTP GET request. The response we are expecting will be the height of the iframe.
+                    return frame1.request("height")
+                })
+                .then(req => {
                     document.getElementById("frame1").height = req.data; // Duh
                 })
-            })
             
         </script>
     </body>

@@ -19,11 +19,12 @@
             
             const counterWimp = new Wimp("#frame1")
             
-            counterWimp.ready().then(() => {
-                counterWimp.listen("click", (count) => {
-                    counterValue.innerHTML = count;
+            counterWimp.ready()
+                .then(() => {
+                    counterWimp.listen("click", (count) => {
+                        counterValue.innerHTML = count;
+                    })
                 })
-            })
         </script>
     </body>
 </html>
