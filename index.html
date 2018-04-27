@@ -223,7 +223,7 @@ headings:
                         <tr>
                             <th><code>"*"</code> - Wildcard</th>
                             <td><code>String</code></td>
-                            <td><code>Uses `window.frames`. Note that new iframes will not automatically be added.</code></td>
+                            <td>Uses <code>window.frames</code>. Note that new iframes will not automatically be added.</td>
                         </tr>
                         <tr>
                             <th>Registered target</th>
@@ -247,7 +247,7 @@ headings:
 
     <div class="card">
         <div class="card-content">
-            <span class="card-title"><code>myWimp.ready(fn)</code></span>
+            <span class="card-title"><code>myWimp.ready([fn])</code></span>
             Called when <code>Wimp.init()</code> has been called in all this Wimp instance's targets.
             <blockquote>
                 <p><b><code>fn</code></b> - <code>Function</code> - Function called when all the targets are ready. Can also be omiited and then a promise will be returned, which will resolve when all the targets are ready.</p>
@@ -394,10 +394,6 @@ myWimp.addTarget(window.open("popup.html")) // Add the popup window to the insta
                         <tr>
                             <th>Name</th>
                             <td>Name can be omitted and specified in options instead. Has higher priority.</td>
-                        </tr>
-                        <tr>
-                            <th>...</th>
-                            <td><code>Function</code>...</td>
                         </tr>
                     </tbody>
                 </table>
