@@ -17,10 +17,12 @@
     // const connectedStreams = { "name": ... }
     // Window's own streams
     // const registeredStreams = { "" : { "private": ..., "fn" : function } }
-
+    
+    const context = (typeof document !== "undefined") ? "renderer" : "worker"
+    
     let proxyingEnabled = false;
 
-    let DOMSelector = document.querySelectorAll.bind(document);
+    let DOMSelector = context == "renderer" ? document.querySelectorAll.bind(document) : void 0;
 
     const wimps = []; // Instances of Wimp within the window. Loop through it for all requests
 
@@ -49,14 +51,16 @@
         static init(newSelector){
             // Maybe should be instance.listen which also sends the ready event to the targets. Notifying them that we are ready for requests.
 
-            DOMSelector = newSelector || DOMSelector;
-
-            window.addEventListener("message", Wimp._listener);
-
+            DOMSelector = newSelector || DOMSelector
+            
+            if(typeof window !== "undefined"){
+                window.addEventListener("message", Wimp._listener)
+            }
         }
 
         static _listener(event){
             const data = JSON.parse(event.data);
+            //console.log(event, data)
             const parsedEvent = {
                 data,
                 source: event.source,
@@ -66,8 +70,9 @@
             switch(data.type){
                 case "readyCheck":
                     // Obviously ready(as we're receiving a mesage), so just change the type and send it back
-                    data.type = "readyResponse";
-                    Wimp._postMessage({window: event.source, origin: event.origin}, data);
+                    data.type = "readyResponse"
+                    Wimp._postMessageFromEvent(event, data)
+                    //Wimp._postMessage({window: event.source, origin: event.origin}, data);
                     break;
                 case "proxyReadyCheck":
                     if(pendingProxyTargets[data.requestID]){
@@ -75,7 +80,7 @@
                     }
 
                     data.type = "readyResponse";
-                    Wimp._postMessage({window: event.source, origin: event.origin}, data);
+                    Wimp._postMessageFromEvent(event, data)
 
                     // Now check all the targets. Responds "targetsReady"
                     if(!proxyingEnabled){
@@ -183,7 +188,7 @@
 
                     wimps.forEach(w => {
                         w.targets.some(target => {
-                            if(target.window == event.source){
+                            if(target.window == event.source || target.window == event.srcElement){
 
                                 const res = data.expectResponse ? Wimp._responseFactory(event, data.requestID) : () => {};
 
@@ -267,7 +272,7 @@
 
         static registerTarget(name, element){
             const targets = [];
-            Wimp._targetsToArrayObject(element).forEach((target) => {
+            Wimp._targetsToArrayOfObjects(element).forEach((target) => {
                 targets.push(...Wimp._getTargetWindows(target));
             });
             registeredTargets[name] = targets;
@@ -311,9 +316,27 @@
                 }, options)
             })
         }
-
+        
+        static _postMessageFromEvent(event, data){
+            if(!event.source){
+                Wimp._postMessage({window: event.srcElement}, data)
+            } else {
+                Wimp._postMessage({window: event.source, origin: event.origin}, data)
+            }
+        }
+        
         static _postMessage(target, data){
-            target.window.postMessage(JSON.stringify(data), target.origin);
+            data = JSON.stringify(data)
+            if(context == "worker"){
+                // Inside of the worker thread
+                self.postMessage(data)
+            } else if(typeof Worker !== "undefined" && target.window instanceof self.Worker){
+                // Sending a message to a worker thread
+                target.window.postMessage(data)
+            } else {
+                // Sending a message to another window (frame, parent, or popup)
+                target.window.postMessage(data, target.origin)
+            }
         }
 
         static error(target, message, requestID){
@@ -350,23 +373,36 @@
             return res;
         }
 
-        static _targetsToArrayObject(targets){
+        static _targetsToArrayOfObjects(targets){
             if(!Array.isArray(targets)){
                 targets = [targets];
             }
-            // Correct formatting
-            for(let i=0;i<targets.length;i++){
-                if(targets[i].postMessage || !targets[i].selector){
-                    targets[i] = {
-                        selector: targets[i],
-                        origin: "*"
+            return targets.map(target => {
+                // DOMWindow object or target is a string, which assumes any origin
+                if(target.postMessage || !target.selector){
+                    target = {
+                        selector: target,
+                        origin: target.origin || "*"
                     }
                 }
-                if(!targets[i].origin){
-                    targets[i].origin = "*"
+                if(!target.origin){
+                    target.origin = "*"
                 }
-            }
-            return targets
+                return target
+            })
+//            // Correct formatting
+//            for(let i=0;i<targets.length;i++){
+//                if(targets[i].postMessage || !targets[i].selector){
+//                    targets[i] = {
+//                        selector: targets[i],
+//                        origin: "*"
+//                    }
+//                }
+//                if(!targets[i].origin){
+//                    targets[i].origin = "*"
+//                }
+//            }
+//            return targets
         }
         // Takes a string or element and returns an array of elements or throws an error
         static _getTargetWindows(target){
@@ -397,6 +433,9 @@
                         //                      }];
                     }
                     // Otherwise assume it's a css selector
+                    if(!DOMSelector){
+                        throw "No document variable found. You can call Wimp.init(selector) to replace document.querySelectorAll"
+                    }
                     const nodes = Array.prototype.slice.call(DOMSelector(target.selector));
                     return nodes.filter(node => {
                         // Check that it is an iframe...
@@ -443,10 +482,9 @@
                     origin: "*"
                 }
             }
+            targets = Wimp._targetsToArrayOfObjects(targets)
 
-            targets = Wimp._targetsToArrayObject(targets);
-
-            // Store original selector(if it is one)
+            // Store original selectors(if there are any)
             this.selectors = [];
             targets.forEach(target => {
                 if(typeof target.selector == "string"){
@@ -460,8 +498,10 @@
             targets.forEach((target) => {
                 // Store the target
                 this.targets.push(...Wimp._getTargetWindows(target));
-            });
+            })
+            
             this.readyCheck(false);
+            
         }
 
         readyCheck(reset){
@@ -532,6 +572,7 @@
         // Like a HTTP request, it's once off - fetches/does something
         // data stored in options.data
         request(request, options, cb){
+            console.log(request)
             // Request can be omitted and included in options
             if ( typeof request != "string" ) { options = request; cb = options; }
 
@@ -639,17 +680,14 @@
 
             this.streams[name] = {
                 fn: (data, event) => {
-                    if(this.streams[name].targets.indexOf(event.source) < 0){
+                    if(this.streams[name].targets.indexOf(event.source) < 0 || this.streams[name].targets.indexOf(event.srcElement)){
                         this.streams[name].targets.push({
-                            window: event.source,
+                            window: !event.source ? event.srcElement : event.source,
                             origin: event.origin
                         });
                     }
                     joinFn(data, (response) => {
-                        Wimp._postMessage({
-                            window: event.source, 
-                            origin: event.origin
-                        }, {
+                        Wimp._postMessageFromEvent(event, {
                             type: "streamMessage",
                             name: name,
                             data: response
@@ -695,7 +733,7 @@
 
         addTarget(targets){
             // So that we can add window.open popups to "*" selector etc.
-            targets = Wimp._targetsToArrayObject(targets);
+            targets = Wimp._targetsToArrayOfObjects(targets);
             targets.forEach(target => {
                 if(typeof target.selector == "string"){
                     this.selectors.push(target);
@@ -754,8 +792,11 @@
     if (typeof module === 'object' && module.exports) {
         // CommonJS
         module.exports = Wimp;
-    } else {
+    } else if(typeof window !== "undefined"){
         // Browser global
         window.Wimp = Wimp
+    } else {
+        // Webworker
+        self.Wimp = Wimp
     }
 }());
