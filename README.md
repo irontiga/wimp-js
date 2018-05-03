@@ -13,3 +13,4 @@ Planned features:
    - **wimp-workers** - Allows wimp to communicate to/from web workers
    - **wimp-streams** - Adds streams...i.e. websocket connections to Wimp
    - _**wimp-requests**_ - Maybe...makes simple requests and routes possible...i.e. HTTP GET
+ - Fully ES6...supporting async functions for routes, and getting rid of callback support for things like requests.
